@@ -1,0 +1,23 @@
+---
+description: Working on the devia standard itself
+alwaysApply: true
+---
+
+This repository **is** the standard. Changes here propagate to every project that runs
+`devia init` or `devia sync`, so the bar is the one described in `GOVERNANCE.md`.
+
+1. Read `AGENTS.md` and `PRINCIPLES.md` before changing policy; read `MEMORY.md` before changing
+   anything about `.devia/`.
+2. A rule lives in `rules/<domain>/<ID>.md` with frontmatter: id, title, severity, status,
+   domain, priority, source, requirement, validation. Filename equals id; directory equals
+   domain.
+3. Rule IDs are stable. Supersede, never reuse. Never delete an active MUST without a changelog
+   entry and a superseding id.
+4. `rules/README.md`, `compliance/COVERAGE.md` and `compliance/TRACEABILITY.md` are generated —
+   edit the rule files and run `npm run build:index`.
+5. Changing `templates/project/` changes what every adopter receives: same review bar as a MUST,
+   plus a changelog note saying whether `devia sync` is enough.
+6. The CLI ships with **no runtime dependencies**. Keep it that way, or argue it in an ADR.
+7. Before reporting done: `npm run validate`, `npm test`, and
+   `node bin/devia.mjs check --root .`.
+8. Say what you did not verify.

@@ -1,0 +1,5 @@
+standard_version: 0.1.0
+rule_schema_version: 1
+token_schema_version: 1
+memory_schema_version: 1
+cli_contract_version: 1

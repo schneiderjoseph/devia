@@ -1,0 +1,45 @@
+# Level 3 — enforcement for the standard itself
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  integrity:
+    name: Standard integrity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Required governance files
+        run: |
+          test -f README.md
+          test -f AGENTS.md
+          test -f PRINCIPLES.md
+          test -f MEMORY.md
+          test -f LEVELS.md
+          test -f MATURITY.md
+          test -f GOVERNANCE.md
+          test -f VERSION
+          test -f rules/README.md
+          test -f rules/LIFECYCLE.md
+          test -f compliance/TRACEABILITY.md
+          test -f schema/rule.schema.json
+          test -f checklists/engineering/production.md
+          test -f standard/engineering/security/ASVS_REGISTRY.md
+          test -f standard/design/README.md
+          test -f skills/devia/SKILL.md
+          test -f templates/github/workflows/app-ci.yml
+          test -f templates/project/AGENTS.md
+      - name: Dependency audit
+        run: npm audit --audit-level=high
+      - name: Rules · links · generated files
+        run: npm run validate
+      - name: Unit tests
+        run: npm test
+      - name: The standard passes its own gates
+        run: node bin/devia.mjs check --root .

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DesignTokenFile",
+  "type": "object",
+  "description": "Minimal wrapper; prefer W3C DTCG token files in consuming repos.",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "tokens": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": true
+}

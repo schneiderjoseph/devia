@@ -1,0 +1,70 @@
+{
+  "name": "devia",
+  "version": "0.1.0",
+  "description": "One standard, one memory: engineering and design rules plus living project memory for AI coding agents",
+  "type": "module",
+  "license": "MIT",
+  "author": "Joseph Schneider",
+  "homepage": "https://github.com/schneiderjoseph/devia#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/schneiderjoseph/devia.git"
+  },
+  "bugs": {
+    "url": "https://github.com/schneiderjoseph/devia/issues"
+  },
+  "keywords": [
+    "standard",
+    "ai-agents",
+    "agents",
+    "project-memory",
+    "code-quality",
+    "accessibility",
+    "security",
+    "asvs",
+    "wcag",
+    "conventions"
+  ],
+  "bin": {
+    "devia": "bin/devia.mjs"
+  },
+  "exports": {
+    ".": "./src/cli.mjs",
+    "./rules": "./src/lib/rules.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "rules",
+    "checklists",
+    "standard",
+    "compliance",
+    "schema",
+    "templates",
+    "skills",
+    "scripts",
+    "AGENTS.md",
+    "PRINCIPLES.md",
+    "MEMORY.md",
+    "LEVELS.md",
+    "MATURITY.md",
+    "GOVERNANCE.md",
+    "MIGRATION.md",
+    "REFERENCES.md",
+    "VERSION",
+    "CHANGELOG.md",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build:index": "node scripts/build-index.mjs",
+    "validate": "node scripts/validate-rules.mjs && node scripts/validate-links.mjs && node scripts/build-index.mjs --check",
+    "validate:rules": "node scripts/validate-rules.mjs",
+    "validate:links": "node scripts/validate-links.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "check": "node bin/devia.mjs check --root ."
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

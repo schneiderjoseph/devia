@@ -1,0 +1,24 @@
+{
+  "deviaVersion": "0.1.0",
+  "standardVersion": "0.1.0",
+  "project": {
+    "name": "devia",
+    "profile": "cli"
+  },
+  "maturity": {
+    "target": "gold",
+    "current": "bronze"
+  },
+  "code": {
+    "paths": [
+      "src"
+    ]
+  },
+  "modules": {
+    "engineering": true,
+    "design": false,
+    "memory": true
+  },
+  "waivers": [],
+  "initializedAt": "2026-09-03"
+}

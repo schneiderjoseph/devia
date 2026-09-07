@@ -1,0 +1,9 @@
+# The package ships these files to every platform: normalise to LF in the repository and in the
+# working tree, so a Windows checkout does not publish CRLF content.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.pdf binary

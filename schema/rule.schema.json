@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/schneiderjoseph/devia/schema/rule.schema.json",
+  "title": "DeviaRule",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "severity",
+    "status",
+    "domain",
+    "priority",
+    "source",
+    "requirement",
+    "validation"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]*(-[A-Z0-9]+)+$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 3
+    },
+    "severity": {
+      "enum": [
+        "MUST",
+        "SHOULD",
+        "MAY",
+        "MUST NOT"
+      ],
+      "description": "The obligation itself."
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "proposed",
+        "active",
+        "deprecated",
+        "superseded",
+        "removed"
+      ]
+    },
+    "domain": {
+      "type": "string"
+    },
+    "source": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "applies_to": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "success_criteria": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "requirement": {
+      "type": "string",
+      "minLength": 10
+    },
+    "validation": {
+      "type": "object",
+      "required": [
+        "automated",
+        "manual"
+      ],
+      "properties": {
+        "automated": {
+          "type": "boolean"
+        },
+        "manual": {
+          "type": "boolean"
+        }
+      }
+    },
+    "exceptions": {
+      "type": "string"
+    },
+    "priority": {
+      "enum": [
+        "P0",
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "description": "When the obligation blocks: P0 blocker, P1 required, P2 recommended, P3 optional."
+    },
+    "superseded_by": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]*(-[A-Z0-9]+)+$"
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,36 @@
+name: Bug
+description: Something in the CLI, the templates, or the standard is wrong
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: ["CLI (init/validate/check/doctor/sync)", "project template", "rule content", "agent adapters", "docs"]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Include the command and its output.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should have happened
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: devia version
+      placeholder: "0.1.0 (npx devia --version)"
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Node and OS
+      placeholder: "Node 22.4 · Windows 11"

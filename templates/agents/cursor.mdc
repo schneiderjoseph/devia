@@ -1,0 +1,27 @@
+---
+description: devia — read .devia memory before coding, update it in the same change
+alwaysApply: true
+---
+
+This repository runs on devia. `.devia/` is the project memory and it is not optional.
+
+1. Before the first edit, read `.devia/AGENTS.md`, `.devia/10_NEVER_ALWAYS.md`,
+   `.devia/00_OVERVIEW.md`, and the memory file for the surface you are touching
+   (`.devia/14_INDEX.md`). If `.devia/` does not exist, run `npx devia init` first (AGT-001,
+   AGT-002).
+2. Never invent an endpoint, field, config key or business rule. Unknown goes to
+   `.devia/11_GAPS.md` or to the human — never into the code as a quiet default (AGT-004,
+   MEM-001).
+3. Decided but not built goes in `.devia/12_DEBT.md`, even when you are not fixing it (MEM-002).
+   Never delete a registry line you did not discharge (MEM-011).
+4. Smallest change that satisfies the request (AGT-003). No opportunistic refactors.
+5. Never disable a test, bypass a hook, or weaken a rule or threshold to go green (TST-003,
+   OPS-003, AGT-011).
+6. Server-side authorization, validated input, no secrets, versioned migrations (SEC-001,
+   SEC-002, SEC-003, DB-001).
+7. Any UI change satisfies the design MUSTs: accessible name, keyboard path, visible focus,
+   persistent labels, complete states, never colour alone (A11Y-001, A11Y-004, A11Y-006, UX-007,
+   UI-004).
+8. Update `.devia/` in the same change, per `.devia/impact-map.yaml` (MEM-009).
+9. Cite rule IDs, and always report what you did **not** verify (AGT-006, AGT-007).
+10. Never claim done or production ready without naming the checks that ran (AGT-005).

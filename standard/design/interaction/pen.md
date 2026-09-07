@@ -1,0 +1,1 @@
+- Pen precision allows denser UI than finger; still provide finger-safe primary actions when shared devices

@@ -1,0 +1,2 @@
+- Hover may enhance, never be the only affordance (RWD-003)
+- Precise targets may be smaller than touch, still ≥ A11Y-010

@@ -1,0 +1,22 @@
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Node / Python local junk if scripts added later
+node_modules/
+__pycache__/
+.venv/
+dist/
+build/
+.env
+.env.*
+!.env.example
+
+# Local secrets / audits
+*.pem
+*.key
+secrets/
+audit-output/

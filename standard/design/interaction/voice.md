@@ -1,0 +1,2 @@
+- Voice is progressive enhancement; never the only path to critical tasks unless product explicitly requires it
+- Spoken names must match accessible names

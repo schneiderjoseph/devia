@@ -1,0 +1,82 @@
+name: New rule
+description: Propose a rule for the registry
+labels: ["rule"]
+body:
+  - type: input
+    id: title
+    attributes:
+      label: Rule title
+      placeholder: Webhooks are verified and replay-protected
+    validations:
+      required: true
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Domain
+      options:
+        - agent
+        - memory
+        - architecture
+        - security
+        - database
+        - api
+        - testing
+        - devops
+        - observability
+        - privacy
+        - ai
+        - accessibility
+        - ux
+        - ui
+        - components
+        - states
+        - data-display
+        - design-system
+        - responsive
+        - interaction
+        - localization
+        - motion
+        - content
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options: ["MUST", "MUST NOT", "SHOULD", "MAY"]
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: When does it block? See MATURITY.md
+      options: ["P0", "P1", "P2", "P3"]
+    validations:
+      required: true
+  - type: textarea
+    id: requirement
+    attributes:
+      label: Requirement
+      description: One sentence, in the form the rule file will carry.
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Source
+      description: Where the obligation comes from (WCAG SC, ASVS control, incident, practice).
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: How is it verified?
+      description: Automated, manual, or both — and with what. A rule with no check is aspirational; say so.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence this is needed
+      description: A real failure this rule would have caught.

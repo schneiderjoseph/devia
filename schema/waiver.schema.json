@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RuleWaiver",
+  "type": "object",
+  "required": [
+    "rule_id",
+    "reason",
+    "owner",
+    "expires"
+  ],
+  "properties": {
+    "rule_id": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "expires": {
+      "type": "string",
+      "format": "date"
+    },
+    "risk": {
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    }
+  }
+}

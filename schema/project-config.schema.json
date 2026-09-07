@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/schneiderjoseph/devia/schema/project-config.schema.json",
+  "title": "DeviaProjectConfig",
+  "description": "Shape of .devia/devia.json, written by `devia init` and read by validate, check, doctor and sync.",
+  "type": "object",
+  "required": ["standardVersion", "project", "maturity"],
+  "properties": {
+    "deviaVersion": {
+      "type": "string",
+      "description": "Version of the devia package that last wrote this file."
+    },
+    "standardVersion": {
+      "type": "string",
+      "description": "Version of the standard pinned in .devia/standard/. `devia sync` updates it."
+    },
+    "project": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "profile": {
+          "enum": ["web-app", "service", "library", "cli", "design-system", "docs"]
+        }
+      }
+    },
+    "maturity": {
+      "type": "object",
+      "description": "Declared tier. Agents must never claim a tier the checks do not support.",
+      "properties": {
+        "target": { "enum": ["bronze", "silver", "gold", "platinum"] },
+        "current": { "enum": ["bronze", "silver", "gold", "platinum"] }
+      }
+    },
+    "code": {
+      "type": "object",
+      "description": "Paths that hold the code the memory describes; `devia doctor` compares their history with .devia/.",
+      "properties": {
+        "paths": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "modules": {
+      "type": "object",
+      "description": "Which parts of the standard apply to this project.",
+      "properties": {
+        "engineering": { "type": "boolean" },
+        "design": { "type": "boolean" },
+        "memory": { "type": "boolean" }
+      }
+    },
+    "waivers": {
+      "type": "array",
+      "description": "Time-boxed exceptions. An expired or undated waiver fails `devia check`.",
+      "items": {
+        "type": "object",
+        "required": ["rule_id", "reason", "owner", "expires"],
+        "properties": {
+          "rule_id": { "type": "string", "pattern": "^[A-Z][A-Z0-9]*(-[A-Z0-9]+)+$" },
+          "scope": { "type": "string" },
+          "reason": { "type": "string", "minLength": 10 },
+          "owner": { "type": "string" },
+          "expires": { "type": "string", "format": "date" },
+          "risk": { "enum": ["low", "medium", "high"] }
+        }
+      }
+    },
+    "initializedAt": { "type": "string", "format": "date" }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,3 @@
+- Full operability (A11Y-004)
+- Visible focus (A11Y-006)
+- APG patterns for composites (A11Y-002)

@@ -1,0 +1,41 @@
+# Change type -> memory files that must be updated in the SAME change (MEM-009).
+#
+# `devia validate` checks that every target exists.
+# `devia doctor` reports when code moved and the memory did not.
+#
+# Extend this map as the project grows a surface. A map that never changes is a map nobody uses.
+
+version: 1
+
+impacts:
+  new_endpoint:        ["02_SURFACES.md"]
+  changed_endpoint:    ["02_SURFACES.md"]
+  new_page:            ["02_SURFACES.md", "07_DESIGN.md"]
+  new_background_job:  ["02_SURFACES.md"]
+  new_webhook:         ["02_SURFACES.md", "06_INTEGRATIONS.md"]
+
+  new_table:           ["03_DATA_MODEL.md"]
+  new_column:          ["03_DATA_MODEL.md"]
+  migration:           ["03_DATA_MODEL.md"]
+  state_machine_change:["03_DATA_MODEL.md", "05_FLOWS.md"]
+
+  permission_change:   ["04_PERMISSIONS.md"]
+  new_role:            ["04_PERMISSIONS.md"]
+  new_audited_action:  ["04_PERMISSIONS.md"]
+
+  new_flow:            ["05_FLOWS.md"]
+  new_integration:     ["06_INTEGRATIONS.md"]
+  new_secret:          ["06_INTEGRATIONS.md"]
+
+  design_token:        ["07_DESIGN.md"]
+  new_component:       ["07_DESIGN.md"]
+
+  architecture_change: ["01_ARCHITECTURE.md"]
+  stack_change:        ["00_OVERVIEW.md", "01_ARCHITECTURE.md"]
+  new_module:          ["00_OVERVIEW.md", "01_ARCHITECTURE.md", "14_INDEX.md"]
+
+  decision_recorded:   ["11_GAPS.md"]
+  rule_not_yet_built:  ["12_DEBT.md"]
+  incident_postmortem: ["10_NEVER_ALWAYS.md"]
+  new_routine_task:    ["13_RECIPES.md"]
+  file_moved:          ["14_INDEX.md"]

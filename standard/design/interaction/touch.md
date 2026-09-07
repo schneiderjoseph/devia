@@ -1,0 +1,3 @@
+- Prefer 44×44 primary actions (INT-001)
+- Spacing between targets to reduce mis-taps
+- No hover-only reveal
