@@ -22,6 +22,6 @@ None.
 
 | Service | Effect |
 |---|---|
-| npm | Existing installs keep working; `npx devia` cannot fetch a new version |
+| npm | Existing installs keep working from `node_modules`; nothing new can be fetched. `npx devia` with nothing installed never resolves anyway — the published name is scoped |
 | GitHub Actions | No merges until it returns — gates are not bypassed to unblock work (`OPS-003`) |
 | git absent | `devia doctor` reports staleness as `SKIP`, every other command is unaffected |

@@ -28,7 +28,7 @@ say where, or `--yes` to accept it. Nothing is written before that question is s
 |---|---|---|
 | `.` | `src/cli.mjs` | Programmatic `run(argv)` |
 | `./rules` | `src/lib/rules.mjs` | Loading and validating the registry |
-| `bin.devia` | `bin/devia.mjs` | The `devia` / `npx devia` executable |
+| `bin.devia` | `bin/devia.mjs` | The `devia` executable. The package is `@schneiderjoseph/devia`, the command is `devia`: `npx devia <cmd>` resolves once the package is a dependency |
 
 ## What an adopter receives
 

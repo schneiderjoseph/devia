@@ -29,7 +29,7 @@ Devia fixes it with three things that reinforce each other:
 ## Quick start
 
 ```bash
-npm install -D devia          # or: npx devia init
+npm install -D @schneiderjoseph/devia    # the binary it installs is `devia`
 npx devia init                # creates .devia/ + agent adapters
 npx devia validate            # memory integrity
 npx devia check               # production readiness (P0/P1)

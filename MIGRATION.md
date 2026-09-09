@@ -42,7 +42,7 @@ rules are `DB-*`.
 ## If a repo already adopted one of the old standards
 
 ```bash
-npm install -D devia
+npm install -D @schneiderjoseph/devia
 npx devia init          # writes .devia/ and the agent adapters
 npx devia validate
 npx devia check
