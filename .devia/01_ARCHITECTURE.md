@@ -11,7 +11,7 @@ src/cli.mjs            argument parsing, command table, context (root, .devia, f
    ↓
 src/commands/*.mjs     one file per command, each exporting a default (ctx, name) => exit code
    ↓
-src/lib/*.mjs          yaml · fs · git · rules · ui · vendor · version — no command logic here
+src/lib/*.mjs          yaml · markdown · fs · git · rules · ui · vendor · version — no command logic
    ↓
 content                rules/ · standard/ · checklists/ · templates/ (read, never imported)
 ```
@@ -52,6 +52,8 @@ Content is data. Code reads it; code never encodes what a rule says.
 |---|---|---|
 | No runtime dependencies | The tool that preaches `ARC-004` cannot carry a tree of its own | `.cursor/rules/devia.mdc`, `CONTRIBUTING.md` |
 | Own YAML subset parser | Frontmatter and impact maps only; devia writes the files it reads | `src/lib/yaml.mjs` header |
+| Own Markdown subset renderer | Same reason, same bar: the memory templates use a known subset, and `ARC-004` rules out a library. A line outside the subset is shown as written, never dropped | `src/lib/markdown.mjs` header |
+| `devia read` embeds its content | A reader that needs a server is a reader nobody opens: the page works by double-click, offline | `src/commands/read.mjs` |
 | Rule IDs are stable and never reused | Citations in old reports must keep resolving | `GOVERNANCE.md`, `rules/LIFECYCLE.md` |
 | Pinning the standard into `.devia/standard/` is opt-in | 391 copied files against 17 of memory buries what the folder is for, and every sync becomes a 391-file diff. `devia rules` reads the standard; `devia sync` pins it for offline agents and audits | `src/commands/init.mjs`, `.devia/11_GAPS.md` G8 |
 | The CLI version and the standard version move separately | A CLI fix must not force an adopter to re-pin the corpus | `src/lib/version.mjs` |

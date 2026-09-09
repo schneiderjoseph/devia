@@ -15,6 +15,9 @@ build/
 .env.*
 !.env.example
 
+# Généré par `devia read` — un instantané de la mémoire, pas la mémoire
+.devia/reader.html
+
 # Local secrets / audits
 *.pem
 *.key
