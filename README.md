@@ -79,6 +79,26 @@ Update .devia/ in the SAME change
 An agent that codes without reading the memory, or that ships code without updating it, has
 failed the task — not styled it differently.
 
+## What the gates actually caught
+
+`PRINCIPLES.md` says evidence beats opinion, so here is the evidence. Every defect below was
+found by devia's own gates, in one week, on devia itself and on one real project — a Next.js
+application whose manifest lives in `apps/web/`. None of it is independent adoption; read it as
+a tool being run in anger, not as a case study.
+
+| Defect | Caught by |
+|---|---|
+| Nine relative links resolved in this repository and not in the copy shipped to adopters — every project got nine broken links | The test that walks a materialised `.devia/` instead of listing it |
+| `devia debt close` blanked a table row instead of removing it. A blank line ends a markdown table, so every debt line below the closed one was orphaned | Discharging a real debt line with the command itself |
+| Two tests parsed `--json` from stdout merged with stderr. On a machine with `FORCE_COLOR` set, a Node warning made the JSON unparseable | `prepublishOnly`, which refused to publish |
+| The skill told every agent to bootstrap with `npx devia init`. The package is scoped, so in a repository that has not installed devia that resolves to `404 devia@*` | Installing the skill system-wide, where a cold start is the normal case |
+| Five gates reported `SKIP  no package.json` to a repository that has one, with a lockfile, a lint script and thirteen dependencies. The letter of the rule held — nothing was rounded up to `PASS` — but the reason printed was false | Running `devia check` on a real project instead of a fixture |
+| `MEM-DEBT-P0` matched `P0` anywhere in a debt row. A P1 line reading "becomes P0 once payments ship" reported a P0 blocker on a project that had none | Writing a real project's debt registry |
+
+The last two are the ones worth dwelling on. A check that cannot answer must say so — but a
+`SKIP` with a false reason, or a `FAIL` invented out of prose, is worse than no check at all,
+because the reader believes the tool looked. Both are now regression tests.
+
 ## What is in the box
 
 | Layer | Where | Content |
