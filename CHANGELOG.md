@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.3.0 — 2026-09-09
+
+The standard is unchanged: `VERSION` stays at 0.1.0, no adopter needs `devia sync`.
+
+### devia is for every agent
+
+0.2.0 shipped `--global` serving Claude Code alone and reported the other agents as SKIP. Two of
+those reasons were wrong: they came from an absence never verified. `~/.cursor/rules/` holds
+user-level `.mdc` rules, and `~/.codex/skills/` uses the same `SKILL.md` convention as Claude
+Code. The decision is recorded as G6: no agent is privileged.
+
+`devia skills install --global` now writes, each in the format the agent actually reads:
+
+| Agent | Path | File |
+|---|---|---|
+| Claude Code | `~/.claude/skills/devia/SKILL.md` | skill pack |
+| Codex | `~/.codex/skills/devia/SKILL.md` | skill pack |
+| Cursor | `~/.cursor/rules/devia.mdc` | rules adapter |
+| Gemini | `~/.gemini/GEMINI.md` | universal contract, only when absent or empty |
+| Copilot, Windsurf | — | `SKIP`: user-level configuration is editor settings, not a file devia can place (`12_DEBT.md` D8) |
+
+`CLAUDE_CONFIG_DIR` and `CODEX_HOME` are honoured when set. A directory the agent owns is
+written to freely; a file the **user** owns is written only when absent or empty, and otherwise
+skipped with the reason rather than replaced. `--force` overrides both and names every path.
+
 ## 0.2.0 — 2026-09-09
 
 The standard is unchanged: `VERSION` stays at 0.1.0 and no adopter needs `devia sync`. This

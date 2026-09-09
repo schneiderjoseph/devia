@@ -38,57 +38,84 @@ export function installAdapters(root, { force = false, agents = Object.keys(ADAP
   return { written, kept };
 }
 
+const SKILL_PACK = path.join("skills", "devia", "SKILL.md");
+const adapter = (file) => path.join("templates", "agents", file);
+
 /**
- * Where an agent keeps skills for every project, not one.
+ * Where each agent keeps a contract that applies to every project, not one.
  *
- * Only agents whose user-level location devia can actually determine are listed. The rest are
- * reported as SKIP with the reason: guessing a path in someone's home directory and writing to
- * it is exactly the kind of confident wrong answer this tool exists to prevent.
+ * devia is for every agent, so an agent is listed here as soon as its user-level location is
+ * known — and reported as SKIP with the reason when it is not. Each entry carries the file the
+ * agent actually reads: a skill pack where the agent loads skills, its own rules format
+ * otherwise. Guessing a path inside someone's home directory is the confident wrong answer this
+ * tool exists to prevent, so absence of evidence is reported, never rounded up.
  */
-function globalSkillTargets() {
+function globalTargets() {
   const home = os.homedir();
-  const claudeDir = process.env.CLAUDE_CONFIG_DIR
-    ? path.resolve(process.env.CLAUDE_CONFIG_DIR)
-    : path.join(home, ".claude");
+  const configDir = (envVar, fallback) =>
+    process.env[envVar] ? path.resolve(process.env[envVar]) : path.join(home, fallback);
+
   return {
     claude: {
-      target: path.join(claudeDir, "skills", "devia", "SKILL.md"),
+      target: path.join(configDir("CLAUDE_CONFIG_DIR", ".claude"), "skills", "devia", "SKILL.md"),
+      source: SKILL_PACK,
+    },
+    codex: {
+      target: path.join(configDir("CODEX_HOME", ".codex"), "skills", "devia", "SKILL.md"),
+      source: SKILL_PACK,
     },
     cursor: {
-      reason: "no user-level skill directory — use the per-project .cursor/rules/devia.mdc",
+      target: path.join(home, ".cursor", "rules", "devia.mdc"),
+      source: adapter("cursor.mdc"),
+    },
+    gemini: {
+      // One file the user owns, not a directory devia can add to: written only when it is
+      // absent or empty, so a global instruction file is never silently replaced.
+      target: path.join(home, ".gemini", "GEMINI.md"),
+      source: adapter("AGENTS.md"),
+      onlyWhenEmpty: true,
     },
     copilot: {
-      reason: "instructions are per-repository — .github/copilot-instructions.md",
+      reason: "user-level instructions live in the editor's settings, not a file devia can place",
     },
     windsurf: {
-      reason: "rules are per-repository — .windsurfrules",
+      reason: "no user-level rules file — .windsurfrules is per repository",
     },
   };
 }
 
 /**
- * Install the skill once for every project. This is the only path that writes outside `--root`,
- * it happens only behind `--global`, and it prints every path it touches (04_PERMISSIONS.md).
+ * Install the contract once for every project. This is the only path that writes outside
+ * `--root`: it happens behind `--global`, and it prints every path it touches
+ * (`04_PERMISSIONS.md`).
  */
 export function installGlobalSkill({ force = false } = {}) {
-  const skill = read(path.join(packageRoot, "skills", "devia", "SKILL.md"));
   const written = [];
   const kept = [];
   const skipped = [];
-  for (const [key, entry] of Object.entries(globalSkillTargets())) {
+
+  for (const [key, entry] of Object.entries(globalTargets())) {
     if (!entry.target) {
       skipped.push([key, entry.reason]);
       continue;
     }
-    if (skill === null) {
-      skipped.push([key, "skill pack missing from the installed package"]);
+    const content = read(path.join(packageRoot, entry.source));
+    if (content === null) {
+      skipped.push([key, `${entry.source} missing from the installed package`]);
       continue;
     }
     if (exists(entry.target) && !force) {
-      kept.push([key, entry.target]);
-      continue;
+      const current = read(entry.target) || "";
+      if (entry.onlyWhenEmpty && current.trim()) {
+        skipped.push([key, `${path.basename(entry.target)} already has content — add the contract yourself`]);
+        continue;
+      }
+      if (current.trim()) {
+        kept.push([key, entry.target]);
+        continue;
+      }
     }
-    writeFile(entry.target, skill);
+    writeFile(entry.target, content);
     written.push([key, entry.target]);
   }
   return { written, kept, skipped };

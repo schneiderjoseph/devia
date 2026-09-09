@@ -37,7 +37,7 @@ say where, or `--yes` to accept it. Nothing is written before that question is s
 | `init` | `.devia/` (memory, `devia.json`, `impact-map.yaml`, `standard/`) |
 | `init`, `skills install` | `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/devia.mdc`, `.github/copilot-instructions.md`, `.windsurfrules` |
 | `skills install --skill` | `.cursor/skills/devia/SKILL.md`, `.claude/skills/devia/SKILL.md` |
-| `skills install --global` | Outside the repository: the agent's own skills directory, so the contract applies to every project |
+| `skills install --global` | Outside the repository, in each agent's own configuration: `~/.claude/skills/devia/`, `~/.codex/skills/devia/`, `~/.cursor/rules/devia.mdc`, `~/.gemini/GEMINI.md` when empty. Copilot and Windsurf report `SKIP` (`12_DEBT.md` D8) |
 
 `files` in `package.json` decides what npm ships. Adding a directory the CLI reads at runtime
 without adding it there ships a broken package — see `12_DEBT.md` before assuming it is covered.
