@@ -64,12 +64,11 @@ ${color.bold("devia doctor")} — adoption, drift and staleness
   const vendored = walk(path.join(deviaDir, "standard")).length;
   if (path.resolve(root) === path.resolve(packageRoot)) {
     status("SKIP", "vendored standard", "this repository is the standard");
+  } else if (vendored) {
+    status("PASS", `standard pinned: ${vendored} files`);
   } else {
-    status(
-      vendored ? "PASS" : "WARN",
-      `vendored standard: ${vendored} files`,
-      vendored ? "" : "run `devia sync`"
-    );
+    // Not pinning is the default, so absence is a fact to report, never a warning to clear.
+    status("INFO", "standard not pinned", "`devia rules` reads it; `devia sync` pins a copy");
   }
 
   // Adapters

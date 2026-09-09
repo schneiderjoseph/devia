@@ -40,8 +40,9 @@ the difference between a task and a guess (`AGT-002`).
 
 ## Step 2 — work under the rules
 
-The rules are pinned in `.devia/standard/rules/` with stable IDs. The ones that stop most bad
-changes:
+The rules have stable IDs and are read with `npx devia rules --id <ID>`, or `--domain <name>`
+for a whole area. A project that ran `devia sync` also has them on disk under
+`.devia/standard/rules/`. The ones that stop most bad changes:
 
 | If you are about to… | Rule |
 |---|---|

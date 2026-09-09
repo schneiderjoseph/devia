@@ -38,13 +38,17 @@
 |---|---|---|
 | TODO(devia) | | |
 
-## Standard (vendored)
+## Standard
 
-| Need | Where |
+The standard is read through the CLI, not copied into this repository.
+
+| Need | Command |
 |---|---|
-| Work contract | [`standard/AGENTS.md`](standard/AGENTS.md) |
-| Rule by ID | [`standard/rules/README.md`](standard/rules/README.md) |
-| Engineering policy | [`standard/standard/engineering/README.md`](standard/standard/engineering/README.md) |
-| Design policy | [`standard/standard/design/README.md`](standard/standard/design/README.md) |
-| Checklists | [`standard/checklists/README.md`](standard/checklists/README.md) |
-| Memory doctrine | [`standard/MEMORY.md`](standard/MEMORY.md) |
+| A rule by ID | `npx devia rules --id SEC-001` |
+| Every rule in a domain | `npx devia rules --domain database --priority P0` |
+| Work contract | `AGENTS.md` at this repository's root |
+| Readiness gates | `npx devia check` |
+
+`npx devia sync` pins a version-locked copy under `standard/` when an agent must read it
+offline, or when an audit needs the exact wording you built against. Add the paths here if you
+do.

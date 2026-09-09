@@ -7,12 +7,12 @@
 
 | Command | Purpose | Implementation | Exit code |
 |---|---|---|---|
-| `devia init` | Create `.devia/`, vendor the standard, install adapters | `src/commands/init.mjs` | 0, or 2 on a bad profile or a detected root away from the cwd |
+| `devia init` | Create `.devia/` and install adapters; `--vendor` also pins the standard | `src/commands/init.mjs` | 0, or 2 on a bad profile or a detected root away from the cwd |
 | `devia validate` | Memory integrity | `src/commands/validate.mjs` | 1 on any FAIL |
 | `devia check` | Readiness gates | `src/commands/check.mjs` | 1 on any P0 FAIL |
 | `devia doctor` | Adoption, drift, staleness | `src/commands/doctor.mjs` | 1 when there is no `.devia/` |
 | `devia rules` | Query the registry | `src/commands/rules.mjs` | 1 when `--id` is unknown |
-| `devia sync` | Refresh the vendored standard | `src/commands/sync.mjs` | 1 without `.devia/` |
+| `devia sync` | Pin the standard, or refresh a pinned copy | `src/commands/sync.mjs` | 1 without `.devia/` |
 | `devia skills` | Install adapters and the skill pack, per repository or `--global` | `src/commands/skills.mjs` | 2 on a bad action |
 | `devia gap` / `devia debt` | Registry lines | `src/commands/registry.mjs` | 1 when the id is unknown |
 

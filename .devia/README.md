@@ -29,8 +29,9 @@ Machine files: [`devia.json`](devia.json) (profile, maturity, pinned version) an
 
 This repository **is** the standard, so its memory points at the repository files directly —
 [`../standard/`](../standard/), [`../rules/`](../rules/README.md) — and vendors nothing into
-`.devia/standard/`. Every other adopter gets the vendored, version-pinned copy instead: the same
-text for every agent, offline, no network and no package manager required.
+`.devia/standard/`. Adopters are in the same position by default: they read the standard with
+`devia rules`, and pin a version-locked copy with `devia sync` when an agent must read it
+offline or an audit needs the exact wording.
 
 ## The two registries
 
@@ -45,7 +46,7 @@ text for every agent, offline, no network and no package manager required.
 npx devia validate    # structure, registries, placeholders
 npx devia doctor      # is the memory older than the code?
 npx devia check       # readiness gates
-npx devia sync        # refresh the vendored standard after an upgrade
+npx devia sync        # pin the standard under .devia/standard/, or refresh it
 ```
 
 `.devia/` is committed. It is part of the repository, not a local scratch pad.

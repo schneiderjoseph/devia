@@ -84,7 +84,7 @@ ${color.bold("devia init")} — create .devia/ in this repository
   --profile <name>    ${Object.keys(PROFILES).join(" | ")}
   --force             overwrite existing memory files (dangerous: they hold your decisions)
   --no-agents         do not write the agent adapters
-  --no-vendor         do not vendor the standard into .devia/standard/
+  --vendor            pin a copy of the standard into .devia/standard/ (~390 files)
   --yes               accept a detected root that is not the current directory
 `.trim());
     return 0;
@@ -163,17 +163,20 @@ ${color.bold("devia init")} — create .devia/ in this repository
     status("SKIP", "devia.json kept", "use --force to regenerate");
   }
 
-  // 3. Vendored standard
-  if (flags.vendor === false || flags["no-vendor"]) {
-    status("SKIP", "standard not vendored", "--no-vendor");
-  } else {
+  // 3. Pinned standard — opt-in. Vendoring writes ~390 files a project did not author, which
+  // buries the memory it is supposed to serve: on a real repository the ratio was 17 files of
+  // memory to 391 of copy, and every `sync` produced a 391-file diff. The rules stay reachable
+  // through `devia rules`, and `devia sync` pins the copy for whoever needs it offline.
+  if (flags.vendor && flags.vendor !== "false") {
     const files = vendorStandard(path.join(deviaDir, "standard"), {
       by: "devia init",
       cli,
       standard: version,
       date: vars.DATE,
     });
-    status("PASS", `standard vendored: ${files} files`, `v${version}`);
+    status("PASS", `standard pinned: ${files} files`, `v${version}`);
+  } else {
+    status("SKIP", "standard not pinned", "`devia sync` writes .devia/standard/ when you need it");
   }
 
   // 4. Agent adapters

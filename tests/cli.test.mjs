@@ -115,6 +115,30 @@ test("check blocks on P0 and explains why", () => {
   }
 });
 
+test("a P0 blocker comes from the priority cell, never from prose", () => {
+  const dir = scratch();
+  try {
+    devia(["init", "--root", dir], dir);
+    const file = path.join(dir, ".devia", "12_DEBT.md");
+    const of = () => {
+      const out = devia(["check", "--root", dir, "--json"], dir, { allowFailure: true }).out;
+      return JSON.parse(out).results.find((r) => r.id === "MEM-DEBT-P0");
+    };
+
+    // A P1 line that merely mentions P0 in its text is not a P0 blocker.
+    fs.appendFileSync(file, "\n| D1 | TST-001 | app | Becomes P0 once payments ship | P1 | |\n");
+    assert.equal(of().kind, "PASS");
+
+    // A line whose priority cell is P0 blocks.
+    fs.appendFileSync(file, "| D2 | SEC-001 | app | No authorization on write | P0 | |\n");
+    const blocked = of();
+    assert.equal(blocked.kind, "FAIL");
+    assert.match(blocked.detail, /1 P0 debt line/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("check finds a committed secret", () => {
   const dir = scratch();
   try {
@@ -292,12 +316,17 @@ test("rules can be queried by id and by filter", () => {
   }
 });
 
-test("sync refreshes the vendored standard", () => {
+test("sync pins the standard on demand, and refreshes a pinned copy", () => {
   const dir = scratch();
   try {
     devia(["init", "--root", dir], dir);
     const pinned = path.join(dir, ".devia", "standard", "rules", "memory", "MEM-001.md");
-    assert.ok(fs.existsSync(pinned));
+    assert.ok(!fs.existsSync(pinned), "init pins nothing");
+
+    // sync is the opt-in gesture: it writes the copy that init deliberately did not.
+    devia(["sync", "--root", dir], dir);
+    assert.ok(fs.existsSync(pinned), "sync pins the standard");
+
     fs.writeFileSync(pinned, "tampered\n");
     devia(["sync", "--root", dir], dir);
     assert.match(fs.readFileSync(pinned, "utf8"), /Undecided is never coded/);
@@ -311,7 +340,9 @@ test("sync refreshes the vendored standard", () => {
 test("the links inside a materialised .devia resolve", () => {
   const dir = scratch();
   try {
-    devia(["init", "--root", dir], dir);
+    // --vendor, so the walk covers the pinned tree too: a link that resolves in this repository
+    // and not in the copy is a broken link shipped to every adopter who pins one.
+    devia(["init", "--root", dir, "--vendor"], dir);
     const deviaDir = path.join(dir, ".devia");
 
     const files = [];
@@ -339,7 +370,40 @@ test("the links inside a materialised .devia resolve", () => {
     }
     assert.deepEqual(broken, []);
     // Guard against the walk silently collapsing back to the memory files alone.
-    assert.ok(files.length > 300, `expected the vendored standard to be walked, saw ${files.length}`);
+    assert.ok(files.length > 300, `expected the pinned standard to be walked, saw ${files.length}`);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// Pinning ~390 files a project did not author buries the memory it serves, so it is opt-in. The
+// memory must therefore stand on its own: no link into a copy that was never written.
+test("init does not pin the standard, and the memory still resolves without it", () => {
+  const dir = scratch();
+  try {
+    const out = devia(["init", "--root", dir], dir).out;
+    const deviaDir = path.join(dir, ".devia");
+    assert.ok(!fs.existsSync(path.join(deviaDir, "standard")), "nothing pinned by default");
+    assert.match(out, /standard not pinned/);
+
+    const files = fs.readdirSync(deviaDir).filter((f) => f.endsWith(".md"));
+    const linkRe = /\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
+    const broken = [];
+    for (const f of files) {
+      const text = fs.readFileSync(path.join(deviaDir, f), "utf8");
+      let m;
+      while ((m = linkRe.exec(text))) {
+        const target = m[1].split("#")[0].split("?")[0];
+        if (!target || /^(https?:|mailto:|tel:)/.test(target)) continue;
+        if (!fs.existsSync(path.resolve(deviaDir, target))) broken.push(`${f} -> ${target}`);
+      }
+    }
+    assert.deepEqual(broken, [], "the memory may not link into a standard nobody pinned");
+
+    // doctor reports the absence as a fact, not as something to fix.
+    const doctor = devia(["doctor", "--root", dir], dir).out;
+    assert.match(doctor, /standard not pinned/);
+    assert.doesNotMatch(doctor, /WARN\s+standard/);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

@@ -22,3 +22,4 @@ Add one with `npx devia gap add "question"`.
 |---|---|---|
 | G6 | Should devia install its contract at user level for every agent, or stay per-repository outside Claude Code? | devia is for every agent — user-level install built for Claude Code, Codex, Cursor and Gemini in 0.3.0 |
 | G1 | Should `devia check` grow ecosystem-specific gates (Python, Go, Rust) or stay deliberately generic? | Reframed: the failure was not the ecosystem but the assumption that the manifest sits at the repository root — fixed in 0.4.0. Ecosystem-specific gates remain out of scope |
+| G8 | Should devia pin a copy of the standard into every adopter repository by default? | No — opt-in via devia sync. Measured on a real repository: 391 pinned files against 17 of memory, tripling a 211-file project and turning every sync into a 391-file diff |

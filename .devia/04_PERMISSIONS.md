@@ -30,7 +30,7 @@ content stays. `--force` overrides both, and says which paths it took.
 
 | Operation | Where | Guard |
 |---|---|---|
-| `rm -rf .devia/standard` before re-vendoring | `init`, `sync` | Only that one directory, which the tool owns |
+| `rm -rf .devia/standard` before re-pinning | `init --vendor`, `sync` | Only that one directory, which the tool owns |
 | Overwriting memory files | `init --force` | Off by default, warned about in the output |
 | Removing a registry line | `gap`/`debt close` | Moves the line to the closed table, never deletes it |
 
