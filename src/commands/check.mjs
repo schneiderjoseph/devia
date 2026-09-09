@@ -154,9 +154,16 @@ function makeChecks(root, ctx) {
       run: () => {
         const text = read(path.join(root, ".devia", "12_DEBT.md"));
         if (text === null) return { kind: "SKIP", detail: "no debt registry" };
-        const rows = (text.match(/^\|\s*D\d+\s*\|.*$/gm) || []).filter(
-          (r) => /\bP0\b/.test(r) && !/TODO\(devia\)/.test(r)
-        );
+        // The priority is a cell, not a word somewhere in the row. Matching the whole line made
+        // a P1 line reading "becomes P0 once the payment module ships" fail the gate — a P0
+        // blocker invented out of prose, on a project that had none.
+        const rows = (text.match(/^\|\s*D\d+\s*\|.*$/gm) || []).filter((row) => {
+          if (/TODO\(devia\)/.test(row)) return false;
+          return row
+            .split("|")
+            .slice(1, -1)
+            .some((cell) => cell.trim().toUpperCase() === "P0");
+        });
         return rows.length
           ? { kind: "FAIL", detail: `${rows.length} P0 debt line(s) open` }
           : { kind: "PASS" };

@@ -25,6 +25,12 @@ memory change was invisible.
 Nothing to do when upgrading. An existing `.devia/standard/` is left alone, `devia sync` keeps
 refreshing it, and only new `devia init` runs behave differently. Recorded as G8.
 
+### A P0 blocker comes from the priority cell, never from prose
+
+`MEM-DEBT-P0` matched `P0` anywhere in a debt row. A P1 line reading "becomes P0 once the
+payment module ships" failed the gate, so a project with no P0 debt was told it was blocked by
+one. The check now reads the priority cell. Found by writing a real project's debt registry.
+
 ## 0.4.0 — 2026-09-09
 
 The standard is unchanged: `VERSION` stays at 0.1.0, no adopter needs `devia sync`.

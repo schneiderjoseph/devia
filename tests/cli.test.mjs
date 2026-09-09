@@ -115,6 +115,30 @@ test("check blocks on P0 and explains why", () => {
   }
 });
 
+test("a P0 blocker comes from the priority cell, never from prose", () => {
+  const dir = scratch();
+  try {
+    devia(["init", "--root", dir], dir);
+    const file = path.join(dir, ".devia", "12_DEBT.md");
+    const of = () => {
+      const out = devia(["check", "--root", dir, "--json"], dir, { allowFailure: true }).out;
+      return JSON.parse(out).results.find((r) => r.id === "MEM-DEBT-P0");
+    };
+
+    // A P1 line that merely mentions P0 in its text is not a P0 blocker.
+    fs.appendFileSync(file, "\n| D1 | TST-001 | app | Becomes P0 once payments ship | P1 | |\n");
+    assert.equal(of().kind, "PASS");
+
+    // A line whose priority cell is P0 blocks.
+    fs.appendFileSync(file, "| D2 | SEC-001 | app | No authorization on write | P0 | |\n");
+    const blocked = of();
+    assert.equal(blocked.kind, "FAIL");
+    assert.match(blocked.detail, /1 P0 debt line/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("check finds a committed secret", () => {
   const dir = scratch();
   try {
