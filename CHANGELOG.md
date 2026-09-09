@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.4.0 — 2026-09-09
+
+The standard is unchanged: `VERSION` stays at 0.1.0, no adopter needs `devia sync`.
+
+### A manifest is not always at the root
+
+Running `devia init` on a real project for the first time — a Next.js app whose manifest lives
+in `apps/web/` — exposed five gates reporting `SKIP  no package.json` to a repository that has
+one, with a lockfile, a lint script and thirteen dependencies. The letter of the rule was kept,
+since nothing was rounded up to `PASS`; the reason given was false, which is worse. A reader
+believes the tool looked.
+
+- `check` reads every `package.json` in the repository, nearest the root first, and takes the
+  union of their dependencies: "does this project use X" is not a question about one directory
+- A lockfile is looked for next to each manifest, not only at the root
+- A migrations directory is found at any depth
+- `SKIP` now says `no package.json anywhere in the repository`, and findings name the file they
+  came from — `no npm test script in apps/web/package.json`
+- `init` detects the profile from the nearest manifest instead of falling back to a default, and
+  records the directories holding manifests in `code.paths`, which is what `doctor` watches for
+  staleness
+
+On that project: six SKIPs became two, four gates turned into real findings, and the dependency
+lockfile went from invisible to `PASS  apps/web/package-lock.json`.
+
+- G1 closed and reframed: the blind spot was never the ecosystem, it was the root assumption.
+  D9 records what is still root-only: `pyproject.toml`, `go.mod`, `Cargo.toml`
+- G7 opened: what devia should do when a repository already carries an ad-hoc memory of its own
+
+### Fixed
+
+- Nested directories were not excluded from the scan on Windows when git was unavailable: the
+  separator class only matched `/`, so `apps/web/node_modules` was walked. Both separators now.
+
 ## 0.3.0 — 2026-09-09
 
 The standard is unchanged: `VERSION` stays at 0.1.0, no adopter needs `devia sync`.
