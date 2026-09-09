@@ -18,6 +18,7 @@ Add one with `npx devia debt add "what is missing"`.
 | D5 | SEC-002 | `src/commands/check.mjs` | The secret scanner is a pattern list, not entropy analysis; it will miss a novel key format and `SECURITY.md` says so rather than the check itself | P2 | 2026-09-03 |
 | D7 | OPS-001 | `package.json` | No linter or formatter is configured, so `devia check` reports the missing lint gate on this repository itself; adding one means accepting a devDependency under `ARC-004` | P2 | 2026-09-03 |
 | D8 | AGT-001 | src/commands/skills.mjs | No user-level install for Copilot and Windsurf: their global configuration is editor settings rather than a file devia can place, so both report SKIP. Establish the real location before building | P2 | 2026-09-09 |
+| D9 | OPS-004 | src/commands/check.mjs | check reads package.json manifests anywhere, but pyproject.toml, go.mod and Cargo.toml are still read at the root only, so a Python or Go package one directory down is invisible | P2 | 2026-09-09 |
 
 ## Discharged
 

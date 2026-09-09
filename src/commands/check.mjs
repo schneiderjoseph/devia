@@ -59,7 +59,9 @@ const TEXT_EXT = new Set([
  * secret scan that silently scanned nothing is worse than one that over-reports.
  */
 function sourceFiles(root) {
-  const skipped = (rel) => rel.split(/[\/]/).some((seg) => SKIP_DIRS.has(seg));
+  // Both separators: git reports "/", walk() reports path.sep, and a nested node_modules must be
+  // skipped in either shape.
+  const skipped = (rel) => rel.split(/[\\/]/).some((seg) => SKIP_DIRS.has(seg));
   const wanted = (rel) => TEXT_EXT.has(path.extname(rel).toLowerCase());
 
   const tracked = trackedFiles(root);
@@ -81,12 +83,30 @@ function anyExists(root, candidates) {
 }
 
 function makeChecks(root, ctx) {
-  const pkg = readJSON(path.join(root, "package.json"));
-  const scripts = pkg?.scripts || {};
-  const deps = { ...(pkg?.dependencies || {}), ...(pkg?.devDependencies || {}) };
   const config = readJSON(path.join(root, ".devia", "devia.json"));
   const files = sourceFiles(root);
   const rel = (p) => p.split(path.sep).join("/");
+
+  /**
+   * A manifest is not always at the repository root: `apps/web/package.json` is as real as
+   * `./package.json`. Reading only the root turned "I did not look there" into "you have no
+   * package.json", which is a wrong answer dressed as a SKIP — worse than no answer, because
+   * the reader believes the tool looked.
+   */
+  const manifests = files
+    .filter((f) => /(^|[\\/])package\.json$/.test(f))
+    .sort((a, b) => a.split(path.sep).length - b.split(path.sep).length || a.localeCompare(b));
+  const primary = manifests[0] || null;
+  const pkg = primary ? readJSON(path.join(root, primary)) : null;
+  const pkgWhere = primary ? rel(primary) : null;
+  const scripts = pkg?.scripts || {};
+  // Dependencies are asked as "does this project use X anywhere", so every manifest counts.
+  const deps = {};
+  for (const m of manifests) {
+    const json = readJSON(path.join(root, m)) || {};
+    Object.assign(deps, json.dependencies, json.devDependencies);
+  }
+  const noManifest = `no package.json anywhere in the repository`;
 
   const hasDep = (...names) => names.some((n) => n in deps);
   const grepFiles = (re, limit = 40) => {
@@ -305,12 +325,13 @@ function makeChecks(root, ctx) {
       rule: "TST-001",
       title: "A test command exists",
       run: () => {
-        if (!pkg) return { kind: "SKIP", detail: "no package.json" };
+        if (!pkg) return { kind: "SKIP", detail: noManifest };
         const t = scripts.test;
-        if (!t) return { kind: "WARN", detail: "no npm test script" };
+        const where = pkgWhere === "package.json" ? "" : ` in ${pkgWhere}`;
+        if (!t) return { kind: "WARN", detail: `no npm test script${where}` };
         return /no test specified/.test(t)
-          ? { kind: "FAIL", detail: "test script is the npm placeholder" }
-          : { kind: "PASS" };
+          ? { kind: "FAIL", detail: `test script is the npm placeholder${where}` }
+          : { kind: "PASS", detail: where.trim() };
       },
     },
     {
@@ -319,9 +340,7 @@ function makeChecks(root, ctx) {
       rule: "OPS-004",
       title: "Dependency lockfile committed",
       run: () => {
-        const manifests = ["package.json", "pyproject.toml", "go.mod", "Cargo.toml", "Gemfile"];
-        if (!anyExists(root, manifests)) return { kind: "SKIP", detail: "no manifest" };
-        const lock = anyExists(root, [
+        const LOCKS = [
           "package-lock.json",
           "pnpm-lock.yaml",
           "yarn.lock",
@@ -331,10 +350,23 @@ function makeChecks(root, ctx) {
           "go.sum",
           "Cargo.lock",
           "Gemfile.lock",
+        ];
+        // A lockfile sits next to the manifest it locks, which is not always the root.
+        const dirs = new Set(["."]);
+        for (const m of manifests) dirs.add(path.dirname(m));
+        const rootManifest = anyExists(root, [
+          "package.json",
+          "pyproject.toml",
+          "go.mod",
+          "Cargo.toml",
+          "Gemfile",
         ]);
-        return lock
-          ? { kind: "PASS", detail: lock }
-          : { kind: "FAIL", detail: "no lockfile" };
+        if (!rootManifest && !manifests.length) return { kind: "SKIP", detail: "no manifest" };
+        for (const dir of dirs) {
+          const found = LOCKS.find((l) => exists(path.join(root, dir, l)));
+          if (found) return { kind: "PASS", detail: rel(path.join(dir, found)) };
+        }
+        return { kind: "FAIL", detail: "no lockfile" };
       },
     },
     {
@@ -355,8 +387,14 @@ function makeChecks(root, ctx) {
           "alembic",
           path.join("src", "migrations"),
         ]);
-        return dir
-          ? { kind: "PASS", detail: dir }
+        if (dir) return { kind: "PASS", detail: dir };
+        // Not only at the root: a migrations directory can live under any package.
+        const SEGMENTS = new Set(["migrations", "migrate", "alembic"]);
+        const nested = files
+          .map(rel)
+          .find((f) => f.split("/").slice(0, -1).some((seg) => SEGMENTS.has(seg)));
+        return nested
+          ? { kind: "PASS", detail: nested.split("/").slice(0, -1).join("/") }
           : { kind: "FAIL", detail: "database in use, no migrations directory" };
       },
     },
@@ -388,7 +426,7 @@ function makeChecks(root, ctx) {
       run: () => {
         if (config && config.modules && config.modules.design === false)
           return { kind: "SKIP", detail: "design module disabled" };
-        if (!pkg) return { kind: "SKIP", detail: "no package.json" };
+        if (!pkg) return { kind: "SKIP", detail: noManifest };
         const found = hasDep(
           "axe-core", "@axe-core/react", "@axe-core/playwright", "jest-axe",
           "eslint-plugin-jsx-a11y", "pa11y", "@storybook/addon-a11y", "lighthouse"
@@ -407,7 +445,7 @@ function makeChecks(root, ctx) {
         const profile = config?.project?.profile;
         if (["cli", "library", "docs"].includes(profile))
           return { kind: "SKIP", detail: `${profile} does not run as a watched service` };
-        if (!pkg) return { kind: "SKIP", detail: "no package.json" };
+        if (!pkg) return { kind: "SKIP", detail: noManifest };
         const found = hasDep("@sentry/node", "@sentry/browser", "@sentry/nextjs", "bugsnag",
           "rollbar", "datadog-lambda-js", "dd-trace", "@opentelemetry/api");
         return found

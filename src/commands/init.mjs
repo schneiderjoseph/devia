@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { packageRoot, exists, read, writeFile, writeJSON, walk } from "../lib/fs.mjs";
+import { trackedFiles } from "../lib/git.mjs";
 import { cliVersion, standardVersion } from "../lib/version.mjs";
 import { vendorStandard } from "../lib/vendor.mjs";
 import { color, heading, status, line } from "../lib/ui.mjs";
@@ -15,10 +16,22 @@ const PROFILES = {
   docs: "Documentation or content repository",
 };
 
+/**
+ * Every package.json in the repository, nearest to the root first. A monorepo keeps its real
+ * manifest in `apps/web/` or `packages/*`, and a profile detected from the root alone falls back
+ * to a default while the evidence sits one directory down.
+ */
+function findManifests(root) {
+  const tracked = trackedFiles(root);
+  if (!tracked) return exists(path.join(root, "package.json")) ? ["package.json"] : [];
+  return tracked
+    .filter((f) => /(^|\/)package\.json$/.test(f) && !f.includes("node_modules/"))
+    .sort((a, b) => a.split("/").length - b.split("/").length || a.localeCompare(b));
+}
+
 function detectProfile(root) {
-  const pkg = path.join(root, "package.json");
-  if (exists(pkg)) {
-    const json = JSON.parse(read(pkg) || "{}");
+  for (const manifest of findManifests(root)) {
+    const json = JSON.parse(read(path.join(root, manifest)) || "{}");
     const deps = { ...json.dependencies, ...json.devDependencies };
     if (json.bin) return "cli";
     if (deps.next || deps.react || deps.vue || deps.svelte || deps["@angular/core"])
@@ -46,8 +59,14 @@ function detectName(root) {
 }
 
 function detectCodePaths(root) {
-  const candidates = ["src", "app", "lib", "packages", "server", "api", "web", "components"];
-  return candidates.filter((c) => exists(path.join(root, c)));
+  const candidates = ["src", "app", "apps", "lib", "packages", "server", "api", "web", "components"];
+  const found = candidates.filter((c) => exists(path.join(root, c)));
+  // The directory holding a manifest is code by definition, wherever it sits.
+  for (const manifest of findManifests(root)) {
+    const dir = path.posix.dirname(manifest);
+    if (dir !== "." && !found.some((f) => dir === f || dir.startsWith(`${f}/`))) found.push(dir);
+  }
+  return found;
 }
 
 function fill(text, vars) {

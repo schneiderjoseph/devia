@@ -204,6 +204,41 @@ test("closing a line keeps the open table contiguous", () => {
   }
 });
 
+// A manifest one directory down is as real as one at the root. Reading only the root reported
+// "no package.json" to a project that had one, which is a wrong answer wearing a SKIP.
+test("check reads a manifest that is not at the repository root", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "devia-mono-"));
+  try {
+    const web = path.join(dir, "apps", "web");
+    fs.mkdirSync(web, { recursive: true });
+    fs.writeFileSync(
+      path.join(web, "package.json"),
+      JSON.stringify({ name: "web", scripts: { build: "next build" }, dependencies: { next: "15" } })
+    );
+    fs.writeFileSync(path.join(web, "package-lock.json"), "{}\n");
+
+    devia(["init", "--root", dir, "--no-vendor"], dir);
+    const report = JSON.parse(
+      devia(["check", "--root", dir, "--json"], dir, { allowFailure: true }).out
+    );
+    const of = (id) => report.results.find((r) => r.id === id);
+
+    // The lockfile sits next to the manifest it locks, not at the root.
+    assert.equal(of("OPS-LOCKFILE").kind, "PASS");
+    assert.match(of("OPS-LOCKFILE").detail, /apps\/web\/package-lock\.json/);
+    // A missing test script is a finding, not an absence of evidence, and it names where it looked.
+    assert.equal(of("TST-SCRIPT").kind, "WARN");
+    assert.match(of("TST-SCRIPT").detail, /apps\/web\/package\.json/);
+    // Dependencies are read wherever they are declared, so the profile follows the evidence.
+    assert.equal(of("OBS-ERRORS").kind, "WARN");
+    const config = JSON.parse(fs.readFileSync(path.join(dir, ".devia", "devia.json"), "utf8"));
+    assert.equal(config.project.profile, "web-app");
+    assert.ok(config.code.paths.includes("apps"), "the tree holding the manifest is code");
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("skills install writes outside the project only behind --global", () => {
   const dir = scratch();
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "devia-home-"));
