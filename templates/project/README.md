@@ -27,8 +27,11 @@ Created by `devia init` (devia {{DEVIA_VERSION}}, {{DATE}}).
 Machine files: [`devia.json`](devia.json) (profile, maturity, pinned version) and
 [`impact-map.yaml`](impact-map.yaml) (change type → files to update).
 
-The standard itself is vendored, version-pinned, under [`standard/`](standard/) — the same text
-for every agent, offline, no network and no package manager required.
+The standard itself is not copied in here. Read it with `npx devia rules --id SEC-001` or
+`npx devia rules --domain database`, which is the same text for every agent. If you need it on
+disk — an agent with no network, or an audit that must show the exact wording you built against
+— `npx devia sync` pins a version-locked copy under `standard/`, and `14_INDEX.md` then points
+at it.
 
 ## The two registries
 
@@ -43,7 +46,7 @@ for every agent, offline, no network and no package manager required.
 npx devia validate    # structure, registries, placeholders
 npx devia doctor      # is the memory older than the code?
 npx devia check       # readiness gates
-npx devia sync        # refresh the vendored standard after an upgrade
+npx devia sync        # pin the standard under standard/, or refresh a pinned copy
 ```
 
 `.devia/` is committed. It is part of the repository, not a local scratch pad.

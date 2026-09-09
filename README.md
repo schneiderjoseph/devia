@@ -56,7 +56,7 @@ npx devia doctor              # adoption + staleness diagnosis
 ├── 14_INDEX.md          # where to find what
 ├── impact-map.yaml      # change type → files that must be updated
 ├── devia.json           # profile, modules, maturity target, pinned version
-└── standard/            # vendored, version-pinned copy of the standard
+└── standard/            # optional: `devia sync` pins a copy of the standard here
 ```
 
 Plus adapters so every agent gets the same contract: `AGENTS.md` (universal), `CLAUDE.md`,

@@ -58,5 +58,6 @@ Then:
    (undecided) and `.devia/12_DEBT.md` (decided, not built) — the split matters.
 4. Replace `node scripts/production-check.mjs` in CI with `npx devia check`.
 
-Nothing in the old repos is lost: the full text of both is vendored here, and `devia init`
-vendors it again into the project under `.devia/standard/`.
+Nothing in the old repos is lost: the full text of both ships with this package, readable with
+`npx devia rules`, and `npx devia sync` pins a copy under `.devia/standard/` when a project
+wants one on disk.

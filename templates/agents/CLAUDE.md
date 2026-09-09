@@ -31,4 +31,5 @@ npx devia check
 
 Report the checks that ran, the rule IDs involved, and what you did **not** verify.
 
-Full contract: `.devia/standard/AGENTS.md`. Rules by ID: `.devia/standard/rules/README.md`.
+Rules by ID: `npx devia rules --id SEC-001`, or by domain: `npx devia rules --domain database`.
+A pinned copy lives under `.devia/standard/` only if this project ran `devia sync`.

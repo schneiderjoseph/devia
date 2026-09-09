@@ -31,5 +31,5 @@ npx devia check       # readiness gates
 Update `.devia/` in the same change (see `.devia/impact-map.yaml`), then report what you changed
 **and what you did not verify**.
 
-Full standard: [`.devia/standard/AGENTS.md`](.devia/standard/AGENTS.md) ·
-rules by ID: [`.devia/standard/rules/README.md`](.devia/standard/rules/README.md)
+Rules by ID: `npx devia rules --id SEC-001`, or by domain: `npx devia rules --domain database`.
+A pinned copy lives under `.devia/standard/` only if this project ran `devia sync`.

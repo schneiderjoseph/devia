@@ -53,7 +53,7 @@ Content is data. Code reads it; code never encodes what a rule says.
 | No runtime dependencies | The tool that preaches `ARC-004` cannot carry a tree of its own | `.cursor/rules/devia.mdc`, `CONTRIBUTING.md` |
 | Own YAML subset parser | Frontmatter and impact maps only; devia writes the files it reads | `src/lib/yaml.mjs` header |
 | Rule IDs are stable and never reused | Citations in old reports must keep resolving | `GOVERNANCE.md`, `rules/LIFECYCLE.md` |
-| The standard is vendored into `.devia/standard/` | Agents read it offline, with no package manager and no network | `src/lib/vendor.mjs` |
+| Pinning the standard into `.devia/standard/` is opt-in | 391 copied files against 17 of memory buries what the folder is for, and every sync becomes a 391-file diff. `devia rules` reads the standard; `devia sync` pins it for offline agents and audits | `src/commands/init.mjs`, `.devia/11_GAPS.md` G8 |
 | The CLI version and the standard version move separately | A CLI fix must not force an adopter to re-pin the corpus | `src/lib/version.mjs` |
 | `check` scans what git carries, not what the disk holds | A P0 failure on an ignored build artefact is a false positive that teaches people to ignore the gate | `src/lib/git.mjs` |
 | Design rule IDs carried over unchanged | Consolidation must not invalidate existing citations | `MIGRATION.md` |
@@ -63,5 +63,6 @@ Content is data. Code reads it; code never encodes what a rule says.
 
 ## Current vs target
 
-This repository vendors nothing into its own `.devia/standard/`: it *is* the standard, so its
-memory points at the repository files directly. Every other adopter gets the vendored copy.
+This repository pins nothing into its own `.devia/standard/`: it *is* the standard, so its
+memory points at the repository files directly. Adopters are in the same position by default,
+and pin a copy only when they ask for one.
