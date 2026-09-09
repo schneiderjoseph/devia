@@ -10,7 +10,8 @@ This repository uses **devia**: a standard plus a living project memory in `.dev
 4. Read the memory file for the surface you are touching — see
    [`.devia/14_INDEX.md`](.devia/14_INDEX.md)
 
-If `.devia/` is missing, run `npx devia init` and fill `00_OVERVIEW.md` before writing code.
+If `.devia/` is missing, run `npm i -D @schneiderjoseph/devia && npx devia init`, then fill
+`00_OVERVIEW.md` before writing code.
 
 ## While working
 

@@ -13,7 +13,7 @@
 | `devia doctor` | Adoption, drift, staleness | `src/commands/doctor.mjs` | 1 when there is no `.devia/` |
 | `devia rules` | Query the registry | `src/commands/rules.mjs` | 1 when `--id` is unknown |
 | `devia sync` | Refresh the vendored standard | `src/commands/sync.mjs` | 1 without `.devia/` |
-| `devia skills` | Install adapters and the skill pack | `src/commands/skills.mjs` | 2 on a bad action |
+| `devia skills` | Install adapters and the skill pack, per repository or `--global` | `src/commands/skills.mjs` | 2 on a bad action |
 | `devia gap` / `devia debt` | Registry lines | `src/commands/registry.mjs` | 1 when the id is unknown |
 
 Global flags: `--root`, `--json`, `--help`, `--version` (prints the CLI **and** standard
@@ -37,6 +37,7 @@ say where, or `--yes` to accept it. Nothing is written before that question is s
 | `init` | `.devia/` (memory, `devia.json`, `impact-map.yaml`, `standard/`) |
 | `init`, `skills install` | `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/devia.mdc`, `.github/copilot-instructions.md`, `.windsurfrules` |
 | `skills install --skill` | `.cursor/skills/devia/SKILL.md`, `.claude/skills/devia/SKILL.md` |
+| `skills install --global` | Outside the repository: the agent's own skills directory, so the contract applies to every project |
 
 `files` in `package.json` decides what npm ships. Adding a directory the CLI reads at runtime
 without adding it there ships a broken package — see `12_DEBT.md` before assuming it is covered.

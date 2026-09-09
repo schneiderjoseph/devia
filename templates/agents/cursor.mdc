@@ -7,7 +7,7 @@ This repository runs on devia. `.devia/` is the project memory and it is not opt
 
 1. Before the first edit, read `.devia/AGENTS.md`, `.devia/10_NEVER_ALWAYS.md`,
    `.devia/00_OVERVIEW.md`, and the memory file for the surface you are touching
-   (`.devia/14_INDEX.md`). If `.devia/` does not exist, run `npx devia init` first (AGT-001,
+   (`.devia/14_INDEX.md`). If `.devia/` does not exist, run `npm i -D @schneiderjoseph/devia && npx devia init` first (AGT-001,
    AGT-002).
 2. Never invent an endpoint, field, config key or business rule. Unknown goes to
    `.devia/11_GAPS.md` or to the human — never into the code as a quiet default (AGT-004,

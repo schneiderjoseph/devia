@@ -23,8 +23,8 @@ const { FORCE_COLOR, ...cleanEnv } = process.env;
 
 // stdout is a contract: `--json` is parsed from it. Merging stderr into it on failure turned a
 // harmless runtime warning into unparseable JSON, and only for whoever had FORCE_COLOR set.
-function devia(args, cwd, { allowFailure = false } = {}) {
-  const options = { cwd, encoding: "utf8", env: { ...cleanEnv, NO_COLOR: "1" } };
+function devia(args, cwd, { allowFailure = false, env = {} } = {}) {
+  const options = { cwd, encoding: "utf8", env: { ...cleanEnv, NO_COLOR: "1", ...env } };
   try {
     return { code: 0, out: execFileSync(process.execPath, [bin, ...args], options), err: "" };
   } catch (e) {
@@ -201,6 +201,36 @@ test("closing a line keeps the open table contiguous", () => {
     );
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("skills install writes outside the project only behind --global", () => {
+  const dir = scratch();
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "devia-home-"));
+  const claudeDir = path.join(home, ".claude");
+  const skill = path.join(claudeDir, "skills", "devia", "SKILL.md");
+  try {
+    // Without the flag, nothing outside --root may be touched (04_PERMISSIONS.md).
+    devia(["skills", "install", "--root", dir], dir, { env: { CLAUDE_CONFIG_DIR: claudeDir } });
+    assert.ok(!fs.existsSync(claudeDir), "a plain install must stay inside the repository");
+
+    const res = devia(["skills", "install", "--global", "--root", dir], dir, {
+      env: { CLAUDE_CONFIG_DIR: claudeDir },
+    });
+    assert.ok(fs.existsSync(skill), "the user-level skill must be written");
+    assert.match(fs.readFileSync(skill, "utf8"), /^---\nname: devia/);
+    // Every path it touches is printed, and agents it cannot place are SKIP with a reason.
+    assert.match(res.out, /SKILL\.md/);
+    assert.match(res.out, /cursor/);
+
+    fs.writeFileSync(skill, "edited by hand\n");
+    devia(["skills", "install", "--global", "--root", dir], dir, {
+      env: { CLAUDE_CONFIG_DIR: claudeDir },
+    });
+    assert.match(fs.readFileSync(skill, "utf8"), /edited by hand/, "no overwrite without --force");
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(home, { recursive: true, force: true });
   }
 });
 

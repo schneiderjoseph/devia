@@ -10,7 +10,8 @@ work, updated with every change.
 3. `.devia/00_OVERVIEW.md` — what this project is
 4. The memory file for the surface you are touching (`.devia/14_INDEX.md`)
 
-No `.devia/`? Run `npx devia init` and fill `00_OVERVIEW.md` before writing code.
+No `.devia/`? Run `npm i -D @schneiderjoseph/devia && npx devia init`, then fill
+`00_OVERVIEW.md` before writing code.
 
 ## Rules that override default behaviour
 

@@ -21,8 +21,11 @@ ls .devia
 **No `.devia/`** → initialise before writing any code:
 
 ```bash
+npm i -D @schneiderjoseph/devia    # the package is scoped, the command is not
 npx devia init
 ```
+
+Install first: `npx devia` only resolves once the package is a dependency of the project.
 
 Then fill `.devia/00_OVERVIEW.md` from what the repository actually contains — stack, modules,
 where the truth lives. Read the code to fill it; do not invent it. This is not paperwork: it is

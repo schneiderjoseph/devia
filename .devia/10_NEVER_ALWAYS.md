@@ -14,8 +14,9 @@
   liability (`ARC-004`) cannot ship a tree of its own. Node built-ins, or argue it in the PR.
 - **Never let a check return `PASS` when it could not determine the answer.** `SKIP` with the
   reason. A false pass is worse than a missing check, exactly like a false registry line.
-- **Never write outside `--root`.** Every path a command touches is derived from the context,
-  never from `process.cwd()` inside a command.
+- **Never write outside `--root`** — the one exception is `skills install --global`, which is
+  off by default and prints every path it writes. Every other path a command touches is derived
+  from the context, never from `process.cwd()` inside a command.
 - **Never overwrite an adopter's memory file without `--force`.** Those files hold decisions the
   tool did not make.
 - **Never add a directory the CLI reads at runtime without adding it to `files` in
