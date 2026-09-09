@@ -17,19 +17,19 @@ function scratch() {
   return dir;
 }
 
+// Node warns on stderr when NO_COLOR and FORCE_COLOR are both set, so the child inherits neither
+// of the parent's colour settings.
+const { FORCE_COLOR, ...cleanEnv } = process.env;
+
+// stdout is a contract: `--json` is parsed from it. Merging stderr into it on failure turned a
+// harmless runtime warning into unparseable JSON, and only for whoever had FORCE_COLOR set.
 function devia(args, cwd, { allowFailure = false } = {}) {
+  const options = { cwd, encoding: "utf8", env: { ...cleanEnv, NO_COLOR: "1" } };
   try {
-    return {
-      code: 0,
-      out: execFileSync(process.execPath, [bin, ...args], {
-        cwd,
-        encoding: "utf8",
-        env: { ...process.env, NO_COLOR: "1" },
-      }),
-    };
+    return { code: 0, out: execFileSync(process.execPath, [bin, ...args], options), err: "" };
   } catch (e) {
     if (!allowFailure) throw e;
-    return { code: e.status ?? 1, out: `${e.stdout || ""}${e.stderr || ""}` };
+    return { code: e.status ?? 1, out: e.stdout || "", err: e.stderr || "" };
   }
 }
 
@@ -128,6 +128,28 @@ test("check finds a committed secret", () => {
     const secret = report.results.find((r) => r.id === "SEC-SECRETS");
     assert.equal(secret.kind, "FAIL");
     assert.match(secret.detail, /config\.js/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("--json keeps stdout parseable when the environment forces colour", () => {
+  const dir = scratch();
+  try {
+    devia(["init", "--root", dir, "--no-vendor"], dir);
+    let stdout;
+    try {
+      // Both variables set on purpose: this is the shape that made Node warn on stderr.
+      stdout = execFileSync(process.execPath, [bin, "check", "--root", dir, "--json"], {
+        cwd: dir,
+        encoding: "utf8",
+        env: { ...cleanEnv, NO_COLOR: "1", FORCE_COLOR: "1" },
+      });
+    } catch (e) {
+      stdout = e.stdout || "";
+    }
+    const report = JSON.parse(stdout);
+    assert.equal(report.ok, false);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
