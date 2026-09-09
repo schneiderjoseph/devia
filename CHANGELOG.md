@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.2.0 — 2026-09-09
+
+The standard is unchanged: `VERSION` stays at 0.1.0 and no adopter needs `devia sync`. This
+release is the CLI only.
+
+### The skill, once for every project
+
+- `devia skills install --global` installs the skill pack in the agent's own configuration
+  directory instead of one repository, so the contract applies everywhere. Claude Code is
+  supported (`~/.claude/skills/devia/SKILL.md`, or `CLAUDE_CONFIG_DIR` when set); Cursor,
+  Copilot and Windsurf report `SKIP` with the reason, because devia will not guess a path
+  inside someone's home directory
+- It is the only command that writes outside `--root`: off by default, every path printed, an
+  edited file kept without `--force` (`04_PERMISSIONS.md`, `10_NEVER_ALWAYS.md`)
+
+### Bootstrap, fixed
+
+- The skill and every agent adapter told an agent to run `npx devia init`. Since the package is
+  scoped, that resolves to nothing in a repository that has not installed devia: `404 devia@*`.
+  They now say `npm i -D @schneiderjoseph/devia && npx devia init`, which is what a cold start
+  actually needs. Found while installing the skill system-wide, where the cold start is the
+  normal case rather than the exception
+
 ## 0.1.0 — 2026-09-03
 
 First release. Devia consolidates three bodies of work into one maintained standard plus a

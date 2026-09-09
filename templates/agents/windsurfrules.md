@@ -4,7 +4,7 @@ This repository runs on devia. `.devia/` is the project memory.
 
 1. Read `.devia/AGENTS.md`, `.devia/10_NEVER_ALWAYS.md`, `.devia/00_OVERVIEW.md` and the memory
    file for the surface you are touching before editing anything. No `.devia/`? Run
-   `npx devia init` first.
+   `npm i -D @schneiderjoseph/devia && npx devia init` first.
 2. Never invent an endpoint, field, config key or business rule — record the unknown in
    `.devia/11_GAPS.md` or ask.
 3. Decided but not built goes to `.devia/12_DEBT.md`; never delete a line you did not discharge.

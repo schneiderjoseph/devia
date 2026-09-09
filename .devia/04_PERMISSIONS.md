@@ -7,13 +7,19 @@
 
 | Allowed | Never |
 |---|---|
-| Create and update files under `<root>/.devia/` | Write outside `--root` |
+| Create and update files under `<root>/.devia/` | Write outside `--root`, except `skills install --global` |
 | Write the agent adapters at the repository root | Overwrite a file the user has edited, without `--force` |
 | Read files in the target repository to produce evidence | Send anything over the network |
 | Replace `.devia/standard/` wholesale on `sync` | Touch the project's own memory content on `sync` |
 
 `init` keeps every existing memory file unless `--force` is passed, because those files hold
 decisions the tool did not make.
+
+`skills install --global` is the single exception to the boundary: it installs the skill in the
+agent's own configuration directory so it applies to every project. It is off by default, it
+prints every path it writes, it keeps an edited file without `--force`, and for agents whose
+user-level location cannot be determined it reports `SKIP` with the reason rather than guessing
+a path inside someone's home directory.
 
 ## Destructive operations
 
