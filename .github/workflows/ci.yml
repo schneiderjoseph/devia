@@ -8,14 +8,21 @@ on:
 
 jobs:
   integrity:
-    name: Standard integrity
-    runs-on: ubuntu-latest
+    # The CLI writes files on POSIX and on Windows, and only one of the two was ever exercised.
+    name: Standard integrity (${{ matrix.os }}, node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: ["20", "22"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: ${{ matrix.node }}
       - name: Required governance files
+        shell: bash
         run: |
           test -f README.md
           test -f AGENTS.md

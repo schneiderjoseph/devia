@@ -1,5 +1,6 @@
 import path from "node:path";
 import { exists, read, readJSON, walk } from "../lib/fs.mjs";
+import { trackedFiles } from "../lib/git.mjs";
 import { color, heading, status, line } from "../lib/ui.mjs";
 
 /**
@@ -50,10 +51,28 @@ const TEXT_EXT = new Set([
   ".css", ".ini", ".cfg", ".conf",
 ]);
 
+/**
+ * The files this repository actually carries: what git tracks, plus what is untracked and not
+ * ignored — the content a push would publish. An ignored path is a local artefact, and failing a
+ * P0 gate on someone's build cache or downloaded fixture is a false positive, not vigilance.
+ * Without git the tree is walked instead, which is wider: SKIP is not an option here, because a
+ * secret scan that silently scanned nothing is worse than one that over-reports.
+ */
 function sourceFiles(root) {
+  const skipped = (rel) => rel.split(/[\/]/).some((seg) => SKIP_DIRS.has(seg));
+  const wanted = (rel) => TEXT_EXT.has(path.extname(rel).toLowerCase());
+
+  const tracked = trackedFiles(root);
+  if (tracked) {
+    return tracked
+      .filter((rel) => !skipped(rel) && wanted(rel))
+      .map((rel) => rel.split("/").join(path.sep))
+      .sort();
+  }
+
   return walk(root, {
-    skip: (rel) => rel.split(path.sep).some((seg) => SKIP_DIRS.has(seg)),
-    filter: (rel) => TEXT_EXT.has(path.extname(rel).toLowerCase()),
+    skip: (rel) => skipped(rel),
+    filter: (rel) => wanted(rel),
   });
 }
 

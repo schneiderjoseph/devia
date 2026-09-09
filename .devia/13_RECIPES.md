@@ -58,12 +58,24 @@ node bin/devia.mjs validate       # this repository's own memory
 
 ## Release
 
+The two versions move independently: `package.json` is the CLI, `VERSION` is the standard. Bump
+only the one that actually changed — an adopter pins the standard and reports the CLI.
+
 ```text
-1. Bump version in package.json and standard_version in VERSION
-2. Update CHANGELOG.md with the migration note
-3. npm run validate && npm test
-4. Verify the package contents (files in package.json) before publishing
+1. Bump package.json version, and standard_version in VERSION if the corpus moved
+2. Update CHANGELOG.md: what changed, and whether `devia sync` is enough for an adopter
+3. npm run validate && npm test && node bin/devia.mjs check --root . && node bin/devia.mjs validate
+4. npm pack --dry-run          # read the file list: what is missing here is missing for everyone
+5. npm login                   # once per machine
+6. npm publish                 # prepublishOnly re-runs validate + test
+7. git tag v<version> && git push --tags
+8. Smoke test the published tarball, not the working tree:
+     cd $(mktemp -d) && npm init -y && npm i devia@<version>
+     npx devia init && npx devia validate && npx devia doctor
 ```
+
+Step 8 is the one that catches a `files` entry left out of `package.json`: the working tree has
+the file, the tarball does not, and only a real install tells them apart.
 
 Every recipe ends with the memory update it implies. That is what makes `MEM-009` mechanical
 rather than virtuous.

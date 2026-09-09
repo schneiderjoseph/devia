@@ -158,6 +158,30 @@ test("gap and debt lines get monotone ids and are not deleted on close", () => {
   }
 });
 
+test("closing a line keeps the open table contiguous", () => {
+  const dir = scratch();
+  try {
+    devia(["init", "--root", dir, "--no-vendor"], dir);
+    for (const what of ["First", "Second", "Third"]) {
+      devia(["debt", "add", what, "--root", dir], dir);
+    }
+    devia(["debt", "close", "D2", "shipped in abc123", "--root", dir], dir);
+
+    const lines = fs.readFileSync(path.join(dir, ".devia", "12_DEBT.md"), "utf8").split("\n");
+    const open = lines.slice(0, lines.findIndex((l) => /^##\s+Discharged/.test(l)));
+    const first = open.findIndex((l) => l.startsWith("| D1"));
+    const last = open.findIndex((l) => l.startsWith("| D3"));
+    assert.ok(first > 0 && last > first, "both surviving lines must still be listed");
+    // A blank line between them would end the table and orphan every row below the closed one.
+    assert.deepEqual(
+      open.slice(first, last + 1).filter((l) => !l.startsWith("|")),
+      []
+    );
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("rules can be queried by id and by filter", () => {
   const dir = scratch();
   try {
@@ -185,24 +209,71 @@ test("sync refreshes the vendored standard", () => {
   }
 });
 
+// The whole tree, vendored standard included: a link that resolves here and not in the copy is a
+// broken link shipped to every adopter, and the flat listing this test used to do never saw it.
 test("the links inside a materialised .devia resolve", () => {
   const dir = scratch();
   try {
     devia(["init", "--root", dir], dir);
     const deviaDir = path.join(dir, ".devia");
-    const files = fs.readdirSync(deviaDir).filter((f) => f.endsWith(".md"));
-    const linkRe = /\[[^\]]*\]\(([^)\s]+)\)/g;
+
+    const files = [];
+    const collect = (d) => {
+      for (const entry of fs.readdirSync(d, { withFileTypes: true })) {
+        const p = path.join(d, entry.name);
+        if (entry.isDirectory()) collect(p);
+        else if (p.endsWith(".md")) files.push(p);
+      }
+    };
+    collect(deviaDir);
+
+    const linkRe = /\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
     const broken = [];
-    for (const f of files) {
-      const text = fs.readFileSync(path.join(deviaDir, f), "utf8");
+    for (const file of files) {
+      const text = fs.readFileSync(file, "utf8");
       let m;
       while ((m = linkRe.exec(text))) {
-        const target = m[1].split("#")[0];
-        if (!target || /^(https?:|mailto:)/.test(target)) continue;
-        if (!fs.existsSync(path.resolve(deviaDir, target))) broken.push(`${f} -> ${target}`);
+        const target = m[1].split("#")[0].split("?")[0];
+        if (!target || /^(https?:|mailto:|tel:)/.test(target)) continue;
+        if (!fs.existsSync(path.resolve(path.dirname(file), target))) {
+          broken.push(`${path.relative(deviaDir, file)} -> ${target}`);
+        }
       }
     }
     assert.deepEqual(broken, []);
+    // Guard against the walk silently collapsing back to the memory files alone.
+    assert.ok(files.length > 300, `expected the vendored standard to be walked, saw ${files.length}`);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("devia.json records the CLI version, not the standard version", () => {
+  const dir = scratch();
+  try {
+    devia(["init", "--root", dir, "--no-vendor"], dir);
+    const pkg = JSON.parse(fs.readFileSync(path.join(packageRoot, "package.json"), "utf8"));
+    const config = JSON.parse(fs.readFileSync(path.join(dir, ".devia", "devia.json"), "utf8"));
+    assert.equal(config.deviaVersion, pkg.version);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("init refuses a detected root that is not the current directory", () => {
+  const dir = scratch();
+  try {
+    const sub = path.join(dir, "packages", "widget");
+    fs.mkdirSync(sub, { recursive: true });
+
+    const refused = devia(["init"], sub, { allowFailure: true });
+    assert.equal(refused.code, 2);
+    assert.match(refused.out, /not the current directory/);
+    assert.ok(!fs.existsSync(path.join(dir, ".devia")), "nothing may be written to the parent");
+
+    const accepted = devia(["init", "--yes", "--no-vendor"], sub);
+    assert.match(accepted.out, /memory files/);
+    assert.ok(fs.existsSync(path.join(dir, ".devia", "00_OVERVIEW.md")));
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

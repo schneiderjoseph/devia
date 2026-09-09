@@ -7,7 +7,7 @@
 
 | Command | Purpose | Implementation | Exit code |
 |---|---|---|---|
-| `devia init` | Create `.devia/`, vendor the standard, install adapters | `src/commands/init.mjs` | 0, or 2 on a bad profile |
+| `devia init` | Create `.devia/`, vendor the standard, install adapters | `src/commands/init.mjs` | 0, or 2 on a bad profile or a detected root away from the cwd |
 | `devia validate` | Memory integrity | `src/commands/validate.mjs` | 1 on any FAIL |
 | `devia check` | Readiness gates | `src/commands/check.mjs` | 1 on any P0 FAIL |
 | `devia doctor` | Adoption, drift, staleness | `src/commands/doctor.mjs` | 1 when there is no `.devia/` |
@@ -16,7 +16,11 @@
 | `devia skills` | Install adapters and the skill pack | `src/commands/skills.mjs` | 2 on a bad action |
 | `devia gap` / `devia debt` | Registry lines | `src/commands/registry.mjs` | 1 when the id is unknown |
 
-Global flags: `--root`, `--json`, `--help`, `--version`.
+Global flags: `--root`, `--json`, `--help`, `--version` (prints the CLI **and** standard
+versions — an adopter pins one and reports the other).
+
+`init` alone refuses to act on a root it inferred that is not the current directory: `--root` to
+say where, or `--yes` to accept it. Nothing is written before that question is settled.
 
 ## Package exports
 

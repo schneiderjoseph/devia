@@ -27,8 +27,10 @@ Created by `devia init` (devia 0.1.0, 2026-09-03).
 Machine files: [`devia.json`](devia.json) (profile, maturity, pinned version) and
 [`impact-map.yaml`](impact-map.yaml) (change type → files to update).
 
-The standard itself is vendored, version-pinned, under [`standard/`](standard/) — the same text
-for every agent, offline, no network and no package manager required.
+This repository **is** the standard, so its memory points at the repository files directly —
+[`../standard/`](../standard/), [`../rules/`](../rules/README.md) — and vendors nothing into
+`.devia/standard/`. Every other adopter gets the vendored, version-pinned copy instead: the same
+text for every agent, offline, no network and no package manager required.
 
 ## The two registries
 

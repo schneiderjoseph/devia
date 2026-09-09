@@ -1,6 +1,7 @@
 import path from "node:path";
 import { exists, read, readJSON, packageRoot } from "../lib/fs.mjs";
 import { parseYaml } from "../lib/yaml.mjs";
+import { standardVersion } from "../lib/version.mjs";
 import { color, heading, status, line, summary } from "../lib/ui.mjs";
 
 export const REQUIRED_MEMORY = [
@@ -100,7 +101,7 @@ ${color.bold("devia validate")} — memory integrity
       if (!config[key]) add("FAIL", `devia.json: missing ${key}`);
     }
     if (config.project && !config.project.name) add("FAIL", "devia.json: project.name is empty");
-    const installed = parseYaml(read(path.join(packageRoot, "VERSION")) || "").standard_version;
+    const installed = standardVersion();
     if (installed && config.standardVersion && installed !== config.standardVersion) {
       add(
         "WARN",

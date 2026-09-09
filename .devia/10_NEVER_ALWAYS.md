@@ -20,6 +20,10 @@
   tool did not make.
 - **Never add a directory the CLI reads at runtime without adding it to `files` in
   `package.json`.** It works locally and ships broken.
+- **Never vendor a file without whatever it links to.** A relative link that resolves in this
+  repository and not in `.devia/standard/` is a broken link shipped to every adopter, invisible
+  here because `validate-links.mjs` skips `.devia/`. Add the target to `src/lib/vendor.mjs`, and
+  let the materialised-tree test in `tests/cli.test.mjs` prove it.
 
 ## Always
 

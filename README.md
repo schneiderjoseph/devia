@@ -86,7 +86,7 @@ failed the task — not styled it differently.
 | Work contract | [`AGENTS.md`](AGENTS.md) | Workflow, hard stops, output contract |
 | Principles | [`PRINCIPLES.md`](PRINCIPLES.md) | Simple > clever, complexity earned, dependency liability, evidence > opinion |
 | Memory doctrine | [`MEMORY.md`](MEMORY.md) | Registries, sweep discipline, impact map, staleness |
-| Rules | [`rules/`](rules/README.md) | ~100 rules with stable IDs, severity, validation |
+| Rules | [`rules/`](rules/README.md) | 138 rules with stable IDs, severity, priority, validation |
 | Engineering | [`standard/engineering/`](standard/engineering/README.md) | Architecture, security (ASVS 5.0), database, API, testing, devops, observability, privacy, payments, AI |
 | Design | [`standard/design/`](standard/design/README.md) | UX, UI, accessibility (WCAG 2.2), states, components, data display, i18n, responsive, anti-patterns |
 | Checklists | [`checklists/`](checklists/README.md) | Engineering + design review gates |

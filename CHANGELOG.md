@@ -45,7 +45,24 @@ living project memory.
 - `devia gap` / `devia debt` — registry lines with monotone ids that are never reused
 - `devia skills install` — adapters for Cursor, Claude Code, Copilot, Windsurf and the universal
   `AGENTS.md`
+- `devia --version` prints both versions: the CLI, and the standard it carries
+- `devia init` refuses a root it inferred that is not the current directory — `--root` says
+  where, `--yes` accepts the detected one; nothing is written before that is settled
+- `devia check` scans what git carries: tracked files plus untracked ones that are not ignored.
+  An ignored build artefact can no longer fail a P0 gate. Without git, the tree is walked instead
+- `.devia/standard/` is vendored together with everything its files link to (`templates/docs/`,
+  `templates/github/`, `MIGRATION.md`, `CHANGELOG.md`), so every relative link resolves in the
+  adopter's copy; the test walks the materialised tree to prove it
+- `devia.json` records the CLI version in `deviaVersion` and the corpus version in
+  `standardVersion` — the two move independently
+- Closing a registry line splices the row out instead of blanking it, which used to leave a
+  blank line that ended the markdown table and orphaned every row below it
 - No runtime dependencies
+
+### Enforcement
+
+- CI runs the whole suite on ubuntu and windows, Node 20 and 22: the CLI writes files on both
+- `npm publish` re-runs `npm run validate`, the tests and both self-checks (`prepublishOnly`)
 
 ### Adopting
 
