@@ -12,6 +12,7 @@
 | `devia check` | Readiness gates | `src/commands/check.mjs` | 1 on any P0 FAIL |
 | `devia doctor` | Adoption, drift, staleness | `src/commands/doctor.mjs` | 1 when there is no `.devia/` |
 | `devia rules` | Query the registry | `src/commands/rules.mjs` | 1 when `--id` is unknown |
+| `devia read` | Render the memory as one self-contained page | `src/commands/read.mjs` | 1 without `.devia/` |
 | `devia sync` | Pin the standard, or refresh a pinned copy | `src/commands/sync.mjs` | 1 without `.devia/` |
 | `devia skills` | Install adapters and the skill pack, per repository or `--global` | `src/commands/skills.mjs` | 2 on a bad action |
 | `devia gap` / `devia debt` | Registry lines | `src/commands/registry.mjs` | 1 when the id is unknown |
@@ -37,6 +38,7 @@ say where, or `--yes` to accept it. Nothing is written before that question is s
 | `init` | `.devia/` (memory, `devia.json`, `impact-map.yaml`, `standard/`) |
 | `init`, `skills install` | `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/devia.mdc`, `.github/copilot-instructions.md`, `.windsurfrules` |
 | `skills install --skill` | `.cursor/skills/devia/SKILL.md`, `.claude/skills/devia/SKILL.md` |
+| `read` | `.devia/reader.html` — a generated snapshot, gitignored, never the source |
 | `skills install --global` | Outside the repository, in each agent's own configuration: `~/.claude/skills/devia/`, `~/.codex/skills/devia/`, `~/.cursor/rules/devia.mdc`, `~/.gemini/GEMINI.md` when empty. Copilot and Windsurf report `SKIP` (`12_DEBT.md` D8) |
 
 `files` in `package.json` decides what npm ships. Adding a directory the CLI reads at runtime

@@ -303,6 +303,42 @@ test("skills install writes outside the project only behind --global", () => {
   }
 });
 
+// A reader that needs a running server is a reader nobody opens, so the page carries its own
+// content: no fetch, no CDN, no stylesheet to resolve.
+test("read renders the memory into one self-contained page", () => {
+  const dir = scratch();
+  try {
+    devia(["init", "--root", dir], dir);
+    const out = devia(["read", "--root", dir], dir).out;
+    const page = fs.readFileSync(path.join(dir, ".devia", "reader.html"), "utf8");
+
+    assert.match(out, /memory files rendered/);
+    for (const external of ["fetch(", "http://", "https://", "<script src", "<link rel"]) {
+      assert.ok(!page.includes(external), `the page must not depend on ${external}`);
+    }
+    // Every memory file is present, and the contract opens the list.
+    const articles = page.match(/<article id="doc-/g) || [];
+    assert.equal(articles.length, fs.readdirSync(path.join(dir, ".devia")).filter((f) => f.endsWith(".md")).length);
+    assert.ok(page.indexOf('id="doc-AGENTS"') < page.indexOf('id="doc-00_OVERVIEW"'));
+    // The subset actually rendered: the templates are full of tables and fenced commands.
+    assert.ok((page.match(/<table>/g) || []).length > 3, "tables must render");
+    assert.ok((page.match(/<pre/g) || []).length > 0, "fenced code must render");
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("read refuses a repository with no memory", () => {
+  const dir = scratch();
+  try {
+    const res = devia(["read", "--root", dir], dir, { allowFailure: true });
+    assert.equal(res.code, 1);
+    assert.match(res.out, /no \.devia/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("rules can be queried by id and by filter", () => {
   const dir = scratch();
   try {

@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.6.0 — 2026-09-09
+
+The standard is unchanged: `VERSION` stays at 0.1.0.
+
+### `devia read` — the memory as one page
+
+A memory nobody reads is documentation with extra steps. `devia read` renders `.devia/` into a
+single HTML file: a sidebar in reading order — the contract first, then the numbered files — and
+links between memory files that jump inside the page instead of asking the filesystem for them.
+
+The page is **self-contained**: content embedded, no fetch, no CDN, no stylesheet to resolve. It
+opens by double-click, offline. The reader that prompted this one needed a running local server,
+because a page that fetches its own content hits CORS on `file://`.
+
+- `devia read` writes `.devia/reader.html`; `--out` puts it elsewhere
+- It is a **snapshot**, never the source: regenerate it after changing the memory. Adopters
+  should gitignore it, as this repository now does
+- `src/lib/markdown.mjs` renders the subset the memory templates actually use — headings,
+  tables, fenced code, lists, quotes, rules, and a few inline marks. Same reasoning as the YAML
+  parser: devia writes the files it reads, and `ARC-004` rules out a library. Content is escaped
+  before anything else, so memory text cannot inject markup, and a line outside the subset is
+  shown as written rather than dropped
+
+Recorded as G9.
+
+### Fixed
+
+- `devia --help` still described `sync` as refreshing a vendored standard, which 0.5.0 made
+  opt-in
+
 ## 0.5.0 — 2026-09-09
 
 The standard is unchanged: `VERSION` stays at 0.1.0.
