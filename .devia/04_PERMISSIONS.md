@@ -15,11 +15,16 @@
 `init` keeps every existing memory file unless `--force` is passed, because those files hold
 decisions the tool did not make.
 
-`skills install --global` is the single exception to the boundary: it installs the skill in the
-agent's own configuration directory so it applies to every project. It is off by default, it
-prints every path it writes, it keeps an edited file without `--force`, and for agents whose
+`skills install --global` is the single exception to the boundary: it installs the contract in
+each agent's own configuration directory so it applies to every project. It is off by default,
+it prints every path it writes, it keeps an edited file without `--force`, and for agents whose
 user-level location cannot be determined it reports `SKIP` with the reason rather than guessing
 a path inside someone's home directory.
+
+A file the agent owns and devia adds to (`~/.claude/skills/`, `~/.codex/skills/`,
+`~/.cursor/rules/`) is written freely. A file the **user** owns and devia would replace
+(`~/.gemini/GEMINI.md`) is written only when absent or empty; otherwise `SKIP` says so and the
+content stays. `--force` overrides both, and says which paths it took.
 
 ## Destructive operations
 

@@ -207,27 +207,37 @@ test("closing a line keeps the open table contiguous", () => {
 test("skills install writes outside the project only behind --global", () => {
   const dir = scratch();
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "devia-home-"));
-  const claudeDir = path.join(home, ".claude");
-  const skill = path.join(claudeDir, "skills", "devia", "SKILL.md");
+  // os.homedir() reads USERPROFILE on Windows and HOME elsewhere: no real home is touched.
+  const at = { USERPROFILE: home, HOME: home };
+  const claude = path.join(home, ".claude", "skills", "devia", "SKILL.md");
+  const codex = path.join(home, ".codex", "skills", "devia", "SKILL.md");
+  const cursor = path.join(home, ".cursor", "rules", "devia.mdc");
+  const gemini = path.join(home, ".gemini", "GEMINI.md");
   try {
     // Without the flag, nothing outside --root may be touched (04_PERMISSIONS.md).
-    devia(["skills", "install", "--root", dir], dir, { env: { CLAUDE_CONFIG_DIR: claudeDir } });
-    assert.ok(!fs.existsSync(claudeDir), "a plain install must stay inside the repository");
+    devia(["skills", "install", "--root", dir], dir, { env: at });
+    assert.ok(!fs.existsSync(path.join(home, ".claude")), "a plain install stays in the repository");
 
-    const res = devia(["skills", "install", "--global", "--root", dir], dir, {
-      env: { CLAUDE_CONFIG_DIR: claudeDir },
-    });
-    assert.ok(fs.existsSync(skill), "the user-level skill must be written");
-    assert.match(fs.readFileSync(skill, "utf8"), /^---\nname: devia/);
-    // Every path it touches is printed, and agents it cannot place are SKIP with a reason.
-    assert.match(res.out, /SKILL\.md/);
-    assert.match(res.out, /cursor/);
+    const res = devia(["skills", "install", "--global", "--root", dir], dir, { env: at });
 
-    fs.writeFileSync(skill, "edited by hand\n");
-    devia(["skills", "install", "--global", "--root", dir], dir, {
-      env: { CLAUDE_CONFIG_DIR: claudeDir },
-    });
-    assert.match(fs.readFileSync(skill, "utf8"), /edited by hand/, "no overwrite without --force");
+    // Each agent gets the file it actually reads: a skill pack where skills are loaded, the
+    // agent's own rules format otherwise.
+    for (const f of [claude, codex]) {
+      assert.match(fs.readFileSync(f, "utf8"), /^---\nname: devia/, `${f} must be the skill pack`);
+    }
+    assert.match(fs.readFileSync(cursor, "utf8"), /^---\ndescription: devia/);
+    assert.match(fs.readFileSync(gemini, "utf8"), /devia/);
+    // Every path is printed, and an agent devia cannot place is SKIP with the reason.
+    assert.match(res.out, /SKIP\s+copilot/);
+    assert.match(res.out, /SKIP\s+windsurf/);
+
+    // A file the user has edited is never replaced without --force.
+    fs.writeFileSync(claude, "edited by hand\n");
+    fs.writeFileSync(gemini, "my own global instructions\n");
+    const again = devia(["skills", "install", "--global", "--root", dir], dir, { env: at });
+    assert.match(fs.readFileSync(claude, "utf8"), /edited by hand/);
+    assert.match(fs.readFileSync(gemini, "utf8"), /my own global instructions/);
+    assert.match(again.out, /already has content/, "the user-owned file says why it was skipped");
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
     fs.rmSync(home, { recursive: true, force: true });

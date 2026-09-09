@@ -20,3 +20,4 @@ Add one with `npx devia gap add "question"`.
 
 | ID | Question | Decided by |
 |---|---|---|
+| G6 | Should devia install its contract at user level for every agent, or stay per-repository outside Claude Code? | devia is for every agent — user-level install built for Claude Code, Codex, Cursor and Gemini in 0.3.0 |
