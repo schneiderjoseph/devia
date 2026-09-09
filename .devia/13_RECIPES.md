@@ -67,10 +67,12 @@ only the one that actually changed — an adopter pins the standard and reports 
 3. npm run validate && npm test && node bin/devia.mjs check --root . && node bin/devia.mjs validate
 4. npm pack --dry-run          # read the file list: what is missing here is missing for everyone
 5. npm login                   # once per machine
-6. npm publish                 # prepublishOnly re-runs validate + test
+6. npm publish                 # prepublishOnly re-runs validate + test.
+                               # Scoped package: publishConfig.access=public in package.json
+                               # already makes it public, no --access flag to remember
 7. git tag v<version> && git push --tags
 8. Smoke test the published tarball, not the working tree:
-     cd $(mktemp -d) && npm init -y && npm i devia@<version>
+     cd $(mktemp -d) && npm init -y && npm i @schneiderjoseph/devia@<version>
      npx devia init && npx devia validate && npx devia doctor
 ```
 

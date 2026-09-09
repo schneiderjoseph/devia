@@ -58,6 +58,7 @@ Content is data. Code reads it; code never encodes what a rule says.
 | `check` scans what git carries, not what the disk holds | A P0 failure on an ignored build artefact is a false positive that teaches people to ignore the gate | `src/lib/git.mjs` |
 | Design rule IDs carried over unchanged | Consolidation must not invalidate existing citations | `MIGRATION.md` |
 | A check that cannot answer returns SKIP | `PASS` must mean verified, never assumed | `src/commands/check.mjs` |
+| The npm package is scoped, the command is not | npm refused the bare name `devia` as too similar to `degit`, `dexie` and `dva`; scoped names skip that filter. Docs say `npm i -D @schneiderjoseph/devia`, then `npx devia` | `package.json` |
 
 ## Current vs target
 

@@ -1,5 +1,5 @@
 {
-  "name": "devia",
+  "name": "@schneiderjoseph/devia",
   "version": "0.1.0",
   "description": "One standard, one memory: engineering and design rules plus living project memory for AI coding agents",
   "type": "module",
@@ -64,6 +64,9 @@
     "test": "node --test",
     "prepublishOnly": "npm run validate && npm test && node bin/devia.mjs check --root . && node bin/devia.mjs validate",
     "check": "node bin/devia.mjs check --root ."
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "engines": {
     "node": ">=20"

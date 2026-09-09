@@ -67,8 +67,12 @@ living project memory.
 ### Adopting
 
 ```bash
-npm install -D devia && npx devia init
+npm install -D @schneiderjoseph/devia && npx devia init
 ```
 
 Replace `node scripts/production-check.mjs` in CI with `npx devia check`, and add
 `npx devia validate`.
+
+The package is scoped, the command is not: npm refused the bare name `devia` as too similar to
+existing packages, so installs read `@schneiderjoseph/devia` while everything you type afterwards
+stays `devia`.

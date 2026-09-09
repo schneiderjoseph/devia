@@ -27,7 +27,7 @@ the memory stays true, and runs the readiness gates. It replaces two earlier sta
 | Content | Markdown with YAML frontmatter | Parsed by the in-repo YAML subset parser |
 | Tests | `node --test` | `tests/*.test.mjs` |
 | CI | GitHub Actions | `.github/workflows/ci.yml` |
-| Distribution | npm package `devia` | `files` in `package.json` decides what ships |
+| Distribution | npm package `@schneiderjoseph/devia` | Scoped; the binary it installs is `devia` |
 
 ## Modules
 
