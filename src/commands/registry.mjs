@@ -110,18 +110,22 @@ A line is never deleted by a change that did not discharge it (MEM-003, MEM-011)
       status("FAIL", "usage", `devia ${command} close <ID> "closed by <what>"`);
       return 2;
     }
-    const re = new RegExp(`^\\|\\s*${id}\\s*\\|.*$`, "m");
-    const match = content.match(re);
-    if (!match) {
+    // Splice the row out rather than blanking it: a blank line ends a markdown table, so every
+    // row below the closed one would render as loose text instead.
+    const rowRe = new RegExp(`^\\|\\s*${id}\\s*\\|`);
+    const rows = content.split("\n");
+    const at = rows.findIndex((l) => rowRe.test(l));
+    if (at < 0) {
       status("FAIL", `${id} not found in ${spec.file}`);
       return 1;
     }
-    content = content.replace(re, "");
-    const cells = match[0].split("|").slice(1, -1).map((c) => c.trim());
+    const [closed] = rows.splice(at, 1);
+    // An empty template row is a placeholder, not a record — dropped, not emptied.
+    content = rows.filter((l) => !/^\|(\s*\|)+\s*$/.test(l)).join("\n");
+
+    const cells = closed.split("|").slice(1, -1).map((c) => c.trim());
     const subject = cells[spec.subjectCol] || cells[1] || "";
     const closedRow = `| ${id} | ${subject} | ${by} |`;
-    // An empty template row is a placeholder, not a record.
-    content = content.replace(/^\|(\s*\|)+\s*$/gm, "");
     const idx = content.search(/^##\s+(Closed|Discharged)/im);
     if (idx < 0) {
       content = content.trimEnd() + `\n\n## Closed\n\n| ID | Subject | Closed by |\n|---|---|---|\n${closedRow}\n`;

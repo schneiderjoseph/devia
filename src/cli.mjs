@@ -1,6 +1,7 @@
 import process from "node:process";
 import path from "node:path";
-import { readJSON, packageRoot, findProjectRoot } from "./lib/fs.mjs";
+import { packageRoot, findProjectRoot } from "./lib/fs.mjs";
+import { cliVersion, standardVersion } from "./lib/version.mjs";
 import { color } from "./lib/ui.mjs";
 
 const COMMANDS = {
@@ -58,11 +59,15 @@ export function parseArgs(argv) {
 }
 
 export function context(args) {
-  const root = args.flags.root
-    ? path.resolve(String(args.flags.root))
-    : findProjectRoot(process.cwd());
+  const cwd = path.resolve(process.cwd());
+  const given = args.flags.root ? path.resolve(String(args.flags.root)) : null;
+  const root = given || findProjectRoot(cwd);
   return {
     root,
+    cwd,
+    // The root was inferred by walking up, and it is not where the user is standing. A command
+    // that writes asks before acting on it; commands that only read do not care.
+    rootAwayFromCwd: !given && root !== cwd,
     deviaDir: path.join(root, ".devia"),
     packageRoot,
     args,
@@ -72,8 +77,7 @@ export function context(args) {
 }
 
 export function versions() {
-  const pkg = readJSON(path.join(packageRoot, "package.json")) || {};
-  return { cli: pkg.version || "0.0.0" };
+  return { cli: cliVersion(), standard: standardVersion() };
 }
 
 export async function run(argv) {
@@ -81,8 +85,8 @@ export async function run(argv) {
   const command = args._[0];
 
   if (args.flags.version || command === "version") {
-    const { cli } = versions();
-    console.log(`devia ${cli}`);
+    const { cli, standard } = versions();
+    console.log(`devia ${cli} · standard ${standard}`);
     return 0;
   }
   if (!command || command === "help" || (args.flags.help && !command)) {

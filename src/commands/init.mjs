@@ -1,7 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
-import { packageRoot, exists, read, writeFile, writeJSON, copyDir, walk } from "../lib/fs.mjs";
-import { parseYaml } from "../lib/yaml.mjs";
+import { packageRoot, exists, read, writeFile, writeJSON, walk } from "../lib/fs.mjs";
+import { cliVersion, standardVersion } from "../lib/version.mjs";
+import { vendorStandard } from "../lib/vendor.mjs";
 import { color, heading, status, line } from "../lib/ui.mjs";
 import { installAdapters, ADAPTERS } from "./skills.mjs";
 
@@ -13,24 +14,6 @@ const PROFILES = {
   "design-system": "Component library or design system",
   docs: "Documentation or content repository",
 };
-
-/** Vendored into `.devia/standard/` so any agent can read the standard offline. */
-const VENDOR = [
-  "AGENTS.md",
-  "PRINCIPLES.md",
-  "MEMORY.md",
-  "LEVELS.md",
-  "MATURITY.md",
-  "GOVERNANCE.md",
-  "REFERENCES.md",
-  "VERSION",
-];
-const VENDOR_DIRS = ["rules", "checklists", "standard", "compliance", "schema"];
-
-function standardVersion() {
-  const v = parseYaml(read(path.join(packageRoot, "VERSION")) || "");
-  return v.standard_version || "0.0.0";
-}
 
 function detectProfile(root) {
   const pkg = path.join(root, "package.json");
@@ -72,7 +55,7 @@ function fill(text, vars) {
 }
 
 export default async function init(ctx) {
-  const { root, deviaDir, flags } = ctx;
+  const { root, deviaDir, flags, rootAwayFromCwd } = ctx;
 
   if (flags.help) {
     line(`
@@ -83,8 +66,20 @@ ${color.bold("devia init")} — create .devia/ in this repository
   --force             overwrite existing memory files (dangerous: they hold your decisions)
   --no-agents         do not write the agent adapters
   --no-vendor         do not vendor the standard into .devia/standard/
+  --yes               accept a detected root that is not the current directory
 `.trim());
     return 0;
+  }
+
+  // `init` writes. When the root was detected rather than given, and it is not where the user is
+  // standing, stop and say so: a memory created in a parent repository is not something the
+  // output can undo afterwards.
+  if (rootAwayFromCwd && !flags.yes) {
+    status("FAIL", `init would write into ${root}`, "not the current directory");
+    line("");
+    line(`  ${color.bold("--root .")} to create the memory here, or ${color.bold("--yes")} to accept that root.`);
+    line("");
+    return 2;
   }
 
   const force = Boolean(flags.force);
@@ -97,9 +92,10 @@ ${color.bold("devia init")} — create .devia/ in this repository
 
   const name = detectName(root);
   const version = standardVersion();
+  const cli = cliVersion();
   const vars = {
     PROJECT_NAME: name,
-    DEVIA_VERSION: version,
+    DEVIA_VERSION: cli,
     DATE: new Date().toISOString().slice(0, 10),
   };
 
@@ -130,7 +126,7 @@ ${color.bold("devia init")} — create .devia/ in this repository
   const configPath = path.join(deviaDir, "devia.json");
   if (!exists(configPath) || force) {
     writeJSON(configPath, {
-      deviaVersion: version,
+      deviaVersion: cli,
       standardVersion: version,
       project: { name, profile },
       maturity: { target: "gold", current: "bronze" },
@@ -152,24 +148,13 @@ ${color.bold("devia init")} — create .devia/ in this repository
   if (flags.vendor === false || flags["no-vendor"]) {
     status("SKIP", "standard not vendored", "--no-vendor");
   } else {
-    const dest = path.join(deviaDir, "standard");
-    fs.rmSync(dest, { recursive: true, force: true });
-    let files = 0;
-    for (const f of VENDOR) {
-      const src = path.join(packageRoot, f);
-      if (exists(src)) {
-        writeFile(path.join(dest, f), read(src));
-        files++;
-      }
-    }
-    for (const d of VENDOR_DIRS) files += copyDir(path.join(packageRoot, d), path.join(dest, d));
-    writeFile(
-      path.join(dest, "PINNED.md"),
-      `# Pinned standard\n\nVendored by \`devia init\` on ${vars.DATE}.\n\n` +
-        `- devia version: ${version}\n- standard version: ${version}\n\n` +
-        "Do not edit these files. Change the standard upstream, then run `npx devia sync`.\n"
-    );
-    status("PASS", `standard vendored: ${files + 1} files`, `v${version}`);
+    const files = vendorStandard(path.join(deviaDir, "standard"), {
+      by: "devia init",
+      cli,
+      standard: version,
+      date: vars.DATE,
+    });
+    status("PASS", `standard vendored: ${files} files`, `v${version}`);
   }
 
   // 4. Agent adapters

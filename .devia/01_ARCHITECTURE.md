@@ -11,7 +11,7 @@ src/cli.mjs            argument parsing, command table, context (root, .devia, f
    ↓
 src/commands/*.mjs     one file per command, each exporting a default (ctx, name) => exit code
    ↓
-src/lib/*.mjs          yaml · fs · rules · ui — no command logic lives here
+src/lib/*.mjs          yaml · fs · git · rules · ui · vendor · version — no command logic here
    ↓
 content                rules/ · standard/ · checklists/ · templates/ (read, never imported)
 ```
@@ -53,7 +53,9 @@ Content is data. Code reads it; code never encodes what a rule says.
 | No runtime dependencies | The tool that preaches `ARC-004` cannot carry a tree of its own | `.cursor/rules/devia.mdc`, `CONTRIBUTING.md` |
 | Own YAML subset parser | Frontmatter and impact maps only; devia writes the files it reads | `src/lib/yaml.mjs` header |
 | Rule IDs are stable and never reused | Citations in old reports must keep resolving | `GOVERNANCE.md`, `rules/LIFECYCLE.md` |
-| The standard is vendored into `.devia/standard/` | Agents read it offline, with no package manager and no network | `src/commands/init.mjs` |
+| The standard is vendored into `.devia/standard/` | Agents read it offline, with no package manager and no network | `src/lib/vendor.mjs` |
+| The CLI version and the standard version move separately | A CLI fix must not force an adopter to re-pin the corpus | `src/lib/version.mjs` |
+| `check` scans what git carries, not what the disk holds | A P0 failure on an ignored build artefact is a false positive that teaches people to ignore the gate | `src/lib/git.mjs` |
 | Design rule IDs carried over unchanged | Consolidation must not invalidate existing citations | `MIGRATION.md` |
 | A check that cannot answer returns SKIP | `PASS` must mean verified, never assumed | `src/commands/check.mjs` |
 

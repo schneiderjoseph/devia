@@ -16,10 +16,10 @@ Add one with `npx devia debt add "what is missing"`.
 | D3 | MEM-008 | `src/commands/validate.mjs` | `validate` does not check that links inside a project's `.devia/` resolve; only `tests/cli.test.mjs` does, and only for a scratch project | P2 | 2026-09-03 |
 | D4 | GOVERNANCE | `rules/LIFECYCLE.md` | No rule has ever been superseded, so the `deprecated → superseded → removed` path is enforced by `validate-rules.mjs` but never exercised | P3 | 2026-09-03 |
 | D5 | SEC-002 | `src/commands/check.mjs` | The secret scanner is a pattern list, not entropy analysis; it will miss a novel key format and `SECURITY.md` says so rather than the check itself | P2 | 2026-09-03 |
-| D6 | OPS-001 | `.github/workflows/ci.yml` | CI runs on one Node version and one OS; the CLI writes files on Windows and POSIX and only Windows is exercised in practice | P2 | 2026-09-03 |
 | D7 | OPS-001 | `package.json` | No linter or formatter is configured, so `devia check` reports the missing lint gate on this repository itself; adding one means accepting a devDependency under `ARC-004` | P2 | 2026-09-03 |
 
 ## Discharged
 
 | ID | What was missing | Discharged by |
 |---|---|---|
+| D6 | CI runs on one Node version and one OS; the CLI writes files on Windows and POSIX and only Windows is exercised in practice | CI matrix: ubuntu-latest + windows-latest x node 20/22 |

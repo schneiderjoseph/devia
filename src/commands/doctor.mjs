@@ -1,22 +1,10 @@
 import path from "node:path";
-import { execFileSync } from "node:child_process";
 import { exists, read, readJSON, packageRoot, walk } from "../lib/fs.mjs";
-import { parseYaml } from "../lib/yaml.mjs";
+import { git, isRepo } from "../lib/git.mjs";
+import { standardVersion } from "../lib/version.mjs";
 import { color, heading, status, line } from "../lib/ui.mjs";
 import { ADAPTERS } from "./skills.mjs";
 import { REQUIRED_MEMORY, registryIds } from "./validate.mjs";
-
-function git(root, args) {
-  try {
-    return execFileSync("git", args, {
-      cwd: root,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
-    }).trim();
-  } catch {
-    return null;
-  }
-}
 
 function lastCommitTime(root, pathspec) {
   const out = git(root, ["log", "-1", "--format=%ct", "--", ...pathspec]);
@@ -65,15 +53,24 @@ ${color.bold("devia doctor")} — adoption, drift and staleness
 
   // Version pin
   const config = readJSON(path.join(deviaDir, "devia.json")) || {};
-  const installed = parseYaml(read(path.join(packageRoot, "VERSION")) || "").standard_version;
+  const installed = standardVersion();
   if (config.standardVersion && installed && config.standardVersion !== installed) {
     status("WARN", `standard pinned at ${config.standardVersion}`, `installed ${installed} — run \`devia sync\``);
   } else {
     status("PASS", `standard v${config.standardVersion || installed || "?"}`);
   }
 
+  // devia's own repository *is* the standard: it vendors nothing into itself (01_ARCHITECTURE.md).
   const vendored = walk(path.join(deviaDir, "standard")).length;
-  status(vendored ? "PASS" : "WARN", `vendored standard: ${vendored} files`, vendored ? "" : "run `devia sync`");
+  if (path.resolve(root) === path.resolve(packageRoot)) {
+    status("SKIP", "vendored standard", "this repository is the standard");
+  } else {
+    status(
+      vendored ? "PASS" : "WARN",
+      `vendored standard: ${vendored} files`,
+      vendored ? "" : "run `devia sync`"
+    );
+  }
 
   // Adapters
   const present = Object.entries(ADAPTERS).filter(([, [, t]]) => exists(path.join(root, t)));
@@ -101,8 +98,7 @@ ${color.bold("devia doctor")} — adoption, drift and staleness
   status("INFO", `registries: ${gaps.length} gap ids, ${debt.length} debt ids`);
 
   // Staleness — is the memory older than the code it describes?
-  const isRepo = git(root, ["rev-parse", "--is-inside-work-tree"]) === "true";
-  if (!isRepo) {
+  if (!isRepo(root)) {
     status("SKIP", "staleness", "not a git repository");
   } else {
     const codePaths = (config.code?.paths || []).filter((p) => exists(path.join(root, p)));

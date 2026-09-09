@@ -61,7 +61,8 @@
     "validate": "node scripts/validate-rules.mjs && node scripts/validate-links.mjs && node scripts/build-index.mjs --check",
     "validate:rules": "node scripts/validate-rules.mjs",
     "validate:links": "node scripts/validate-links.mjs",
-    "test": "node --test tests/*.test.mjs",
+    "test": "node --test",
+    "prepublishOnly": "npm run validate && npm test && node bin/devia.mjs check --root . && node bin/devia.mjs validate",
     "check": "node bin/devia.mjs check --root ."
   },
   "engines": {
