@@ -24,7 +24,7 @@ Created by `devia init` (devia {{DEVIA_VERSION}}, {{DATE}}).
 | 13 | [`13_RECIPES.md`](13_RECIPES.md) | How do I do this routine task here? |
 | 14 | [`14_INDEX.md`](14_INDEX.md) | Where do I find X? |
 
-Machine files: [`devia.json`](devia.json) (profile, maturity, pinned version) and
+Machine files: [`devia.json`](devia.json) (profile, maturity, pinned version, context budget) and
 [`impact-map.yaml`](impact-map.yaml) (change type → files to update).
 
 The standard itself is not copied in here. Read it with `npx devia rules --id SEC-001` or
@@ -32,6 +32,34 @@ The standard itself is not copied in here. Read it with `npx devia rules --id SE
 disk — an agent with no network, or an audit that must show the exact wording you built against
 — `npx devia sync` pins a version-locked copy under `standard/`, and `14_INDEX.md` then points
 at it.
+
+## Reading this is not reading all of it
+
+Everything above plus the rule registry is more than one task needs. Ask for the slice:
+
+```bash
+npx devia context "add POST /api/orders"
+npx devia context "fix the empty state" --files src/components/Orders.tsx --explain
+```
+
+It returns this project's own never/always lines, the blocking rules for the surfaces involved
+and the impact-map duty first, then whatever else fits the target in `devia.json`
+(`context.budget`).
+
+Three numbers are always reported, because they are three different things:
+
+```text
+Target              1200   what you asked for
+Mandatory floor      962   what the blocking items cost
+Selected            1187   what you got
+```
+
+`context.mode` decides what happens when the floor is larger than the target. `advisory` (the
+default) delivers the mandatory items whole and says `OVER TARGET`; `strict` never exceeds the
+target and compresses them toward their identifiers instead, never dropping one.
+
+Keeping `10_NEVER_ALWAYS.md` pruned matters here: every line is admitted before the target is
+consulted, so a line nobody has ever violated costs every task that runs after it.
 
 ## The two registries
 
@@ -50,3 +78,13 @@ npx devia sync        # pin the standard under standard/, or refresh a pinned co
 ```
 
 `.devia/` is committed. It is part of the repository, not a local scratch pad.
+
+## If devia itself is what went wrong
+
+`npx devia contribute` turns a devia problem you hit here into an issue or a pull request. It
+runs locally, builds a standalone reproduction rather than sending this repository, sanitizes
+anything you explicitly include, prints every byte before sending, and sends nothing without
+`--yes`. A candidate is only eligible once devia has reproduced the problem itself.
+
+Records live in `contributions/`; the generated `payload/` is disposable and gitignored. Turn
+the feature off entirely with `"contribution": { "enabled": false }` in `devia.json`.

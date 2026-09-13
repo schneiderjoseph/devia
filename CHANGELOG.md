@@ -1,5 +1,217 @@
 # Changelog
 
+## 0.8.0 — 2026-09-13
+
+A hardening pass. No new features: three limitations 0.7.0 recorded as debt are closed, and the
+benchmark grew enough to prove it. The standard is unchanged at 0.2.0.
+
+### A target is not a floor
+
+`Budget 600 → selected 1,380` was a stated design — a mandatory item is never evicted — printed
+in a way that read as a broken promise. Three numbers now travel together everywhere:
+
+```text
+Target              2400 tokens  (advisory)
+Mandatory floor     2001 tokens in 36 items
+Selected            2400 tokens in 43 items
+Status           WITHIN TARGET
+```
+
+And the promise is now explicit per mode:
+
+| | `advisory` (default) | `strict` |
+|---|---|---|
+| Mandatory items | always whole | compressed toward their identifier, never dropped |
+| The target | may be exceeded, and says so | **never** exceeded |
+| When it cannot fit | `OVER TARGET`, with the floor | `IMPOSSIBLE` — nothing produced, exit 1 |
+
+Compression is minimal: every mandatory item starts at its smallest form and is bought back
+toward full text in relevance order, so a larger target always returns more text. The first
+implementation shrank every mandatory rule to a bare identifier and then spent the freed tokens
+admitting *optional* rules at full text, which is precisely backwards — that is now a test.
+
+- `context.budget` and `context.mode` in `devia.json`; `context.maxTokens` is still read, so an
+  0.7.0 adopter keeps working untouched
+- `--strict` / `--mode`, and `devia check` gains `CTX-BUDGET` (P2): it compares the declared
+  target with the floor for a task that routes nothing, so a target nobody revisits cannot
+  quietly become a permanent overrun. Closes G11
+- A compressed rule still names itself and says where to read it (`devia rules --id <ID>`)
+
+### The impact map is a router, not only a checklist
+
+Routing was devia guessing from a keyword table, which a project whose vocabulary differs loses
+by. `impact-map.yaml` is the one routing table the *project* wrote: a declared change type now
+routes the domains of the memory files it names, and promotes those files.
+
+`permission_change → 04_PERMISSIONS.md` means a permission change routes to security and privacy
+without anyone teaching devia this project's word for it — and a project that invents
+`new_consent_record` routes exactly as well as a built-in does. `--type` declares it explicitly.
+A change type is matched on half its significant parts, so "add an endpoint" reaches
+`new_endpoint` while "fix the empty state" does not reach `state_machine_change`. Closes D12.
+
+### Evidence is bound to the experiment that produced it
+
+`fixed` used to mean "the behaviour changed between two runs". It now means the two runs were the
+same experiment: every run records a digest of the fixture that ran and of the `bin/` + `src/`
+that ran it, and a fix has to agree about the first and disagree about the second.
+
+```text
+| Run        | Date       | Fixture | devia source |
+| reproduced | 2026-09-12 | 3f2a…   | 9c11…        |
+| expected   | 2026-09-13 | 3f2a…   | 4d80…        |
+```
+
+Editing the fixture until it passes now reports `the reproduction changed between the two runs`
+and stays at `reproduced`. Two runs against the same devia report `nothing in devia changed
+between them`. A record written before hashing existed is re-verified rather than trusted. The
+table travels in the published report, so a maintainer can check it by running the fixture
+against each. Closes D10.
+
+### Benchmark
+
+`npm run benchmark:context` now runs **352 combinations**: 4 corpus shapes (devia's own plus a
+small, an ordinary and a large synthetic memory) × 11 task types × 4 targets × 2 modes. It fails
+on three promises and reports four measurements.
+
+Measured, not claimed:
+
+```text
+Critical-rule recall     100% in 352/352 runs
+Routing accuracy         100% in 352/352 runs
+Strict budget compliance 176/176 runs never exceeded the target
+Advisory over target      68/176 runs, all because the mandatory floor exceeded it
+Mean task-generic share  66.9% of selected tokens
+Mean supporting filler    2.3% of selected tokens
+Mean selection time       <1 ms per run
+```
+
+It found two defects on the way in: the strict compression order above, and a "noise ratio" that
+read 0.0% in all 352 runs because nothing could ever score above zero. A metric that always
+passes measures nothing; it is replaced by two that can move.
+
+Where a target is still exceeded, and exactly why: 68 of the 176 advisory runs, **none** of the
+176 strict ones. In all 68, `selected` equals the mandatory floor to the token — the excess is
+entirely mandatory items and nothing optional was ever added on top. That is now an invariant the
+benchmark and the test suite both enforce, not an observation:
+
+| Corpus | Target | Runs over | Mandatory floor | Excess |
+|---|---|---|---|---|
+| devia (real) | 600 / 1200 / 2400 | 11 / 11 / 1 | 1511–2686 | 20–2086 |
+| small memory | 600 / 1200 | 9 / 2 | 702–1577 | 86–977 |
+| ordinary memory | 600 / 1200 | 9 / 2 | 760–1635 | 144–1035 |
+| large memory | 600 / 1200 / 2400 | 11 / 11 / 1 | 1384–2420 | 20–1820 |
+
+Every one of them is a repository asking for less than its own blocking rules cost. `strict` is
+the answer when the target has to hold.
+
+**Cost per correct decision is not measured.** It needs an agent and a graded task set, which
+this benchmark does not have, and the output says so rather than implying otherwise.
+
+### Fixed
+
+- The benchmark rebuilt the corpus for every combination, which made it forty times slower than
+  the thing it measures. The corpus is read once per shape and cloned per run: 79s → 1.5s
+
+## 0.7.0 — 2026-09-12 (never published)
+
+This version was prepared but never tagged and never published. No source state for it
+survived, and 0.8.0 rewrote the surfaces it introduces below before either reached npm, so
+everything in this section shipped in 0.8.0 instead. It is kept because it is the record of
+what those two commands were when they were written. An adopter looking for `0.7.0` on npm
+will not find it, and wants `0.8.0`.
+
+The standard gains three rules and moves to 0.2.0: `AGT-012`, `AGT-013`, `PRIV-005`.
+
+Nothing changes for a repository that does nothing. Both features are additive, `devia check`,
+`validate`, `doctor`, `rules`, `read` and `sync` behave exactly as before, and neither new
+command needs GitHub authentication, network access or a dependency to do its local work.
+
+### `devia context` — the smallest sufficient context for one task
+
+More context is not better context. Everything devia knows about this repository is about 16,000
+estimated tokens; the part that belongs in the window for one task is a fraction of it, and the
+rest pushes out the code the agent is supposed to read.
+
+```text
+Raw corpus         16247 tokens (estimated)
+Selected            2395 tokens in 45 items
+Budget              2400 tokens
+Reduction           85.3 %
+```
+
+- The corpus is addressable items, not files: a rule, a memory section split at its heading, one
+  never/always line, one open gap or debt row, one impact-map duty
+- Routing is a keyword table, a changed-path table and an implication table, all data. Every
+  selection carries its reason, so `--explain` answers both "why is this here?" and "why is that
+  not?"
+- Five tiers decide what the context *is*; the budget decides how much of it fits. **A blocking
+  constraint is admitted before the budget is consulted and is never evicted** — too small a
+  budget reports an overrun and still carries every P0
+- `context.maxTokens` in `devia.json`, default 1200. A missing or nonsense value degrades to the
+  default rather than failing
+- `--files`, `--diff`, `--domain`, `--budget`, `--explain`, `--stats`, `--full`, `--json`
+
+**A rule devia verifies itself is cited, not recited** (`AGT-013`). `SEC-002` arrives as
+`checked by devia check → SEC-SECRETS (P0) → blocks the change` instead of its requirement,
+because the gate is what stops the change. The exception carries the rule: a `P0` whose only gate
+*warns* keeps its full text, since nothing is actually stopping it. `src/lib/gates.mjs` now holds
+the gate table as data, so `check` and `context` cannot disagree about which rule is enforced.
+
+`npm run benchmark:context` measures six scenarios at three budgets and **asserts recall before
+it reports a reduction**. It found three defects the percentage never would have:
+
+- `add POST /api/orders` routed to `api` alone and dropped `SEC-001` and `SEC-003` — the two
+  rules a write endpoint most needs — at every budget. An endpoint is an authorization surface
+  whether or not the task says the word
+- the word "table" sent a schema change through `components → accessibility` and pulled the whole
+  screen corpus into it
+- `new_endpoint` never matched its own impact-map key, because the task's words were never split
+  on the underscore
+
+### `devia contribute` — a devia problem hit in a real repository
+
+An agent using devia inside somebody's project will sometimes hit a devia problem. This turns
+that into an issue or a pull request under two hard constraints.
+
+**Evidence, not opinion** (`AGT-012`). A candidate is eligible because devia re-ran the recorded
+invocation inside a minimal fixture and observed the reported behaviour:
+
+```text
+observed → reproduced → fixed → issue or pull request
+```
+
+`reproduced` is never something the record says about itself. The verdict is bound to a hash of
+the claim, so editing the claim drops the state back to `observed` instead of carrying a stale
+verdict forward. `fixed` needs both halves — devia saw the problem, then devia saw it gone; the
+expected behaviour alone means the fixture never failed, which is the opposite of a fix. A
+speculative proposal is possible with `--manual`, and becomes an issue, never a pull request.
+
+**The user's repository stays the user's** (`PRIV-005`). Nothing is uploaded. A payload carries a
+standalone fixture, devia's version metadata and the two behaviours. Secrets, credential
+assignments, addresses, IP addresses, the home directory, the account name and the repository
+path are redacted on the way in and the redactions are reported; an environment file is refused
+outright rather than sanitized and copied. The finished payload is re-scanned, and a surviving
+secret shape blocks the upload rather than warning about it.
+
+`submit` writes the payload and prints the `gh` command. `submit --yes` is the only path in devia
+that can reach the network, and it refuses unless the candidate is eligible, the payload is
+clean, an identity is declared in `devia.json`, that identity is not the maintainer's, and `gh`
+is authenticated as it. devia stores no token, reads none from the environment, and never
+commits, branches or pushes in anyone's checkout. A security defect is routed to the private
+advisory path and never becomes an issue or a PR. `"contribution": { "enabled": false }` turns
+the whole feature off, local commands included.
+
+### Fixed
+
+- `src/lib/sanitize.mjs` now owns the secret-pattern list that `devia check` scans with, so a
+  pattern added for one is immediately true for the other
+- The sanitizer re-matched its own `[redacted]` placeholder, inflating the redaction count every
+  time text passed through, and dropped the quoting around a redacted value — which could stop a
+  fixture file parsing
+- `init` now writes `.devia/.gitignore` covering `reader.html` and `contributions/*/payload/`.
+  The memory's README already told adopters those were gitignored; nothing was writing it. The
+  project's own `.gitignore` is not touched
+
 ## 0.6.0 — 2026-09-09
 
 The standard is unchanged: `VERSION` stays at 0.1.0.

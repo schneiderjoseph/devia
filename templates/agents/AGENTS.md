@@ -13,6 +13,12 @@ This repository uses **devia**: a standard plus a living project memory in `.dev
 If `.devia/` is missing, run `npm i -D @schneiderjoseph/devia && npx devia init`, then fill
 `00_OVERVIEW.md` before writing code.
 
+Rather than reading the whole standard, ask for the part this task needs:
+
+```bash
+npx devia context "<what you are about to do>"     # --explain says why each item is there
+```
+
 ## While working
 
 - Never invent endpoints, fields, config keys or business rules. Unknown means ask, or record it
@@ -33,3 +39,7 @@ Update `.devia/` in the same change (see `.devia/impact-map.yaml`), then report 
 
 Rules by ID: `npx devia rules --id SEC-001`, or by domain: `npx devia rules --domain database`.
 A pinned copy lives under `.devia/standard/` only if this project ran `devia sync`.
+
+Found a problem in devia itself rather than in this project? `npx devia contribute` prepares an
+issue or a pull request from evidence, without exposing this repository, and sends nothing
+without `--yes`.

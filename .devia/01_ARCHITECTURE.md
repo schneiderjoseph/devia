@@ -11,7 +11,8 @@ src/cli.mjs            argument parsing, command table, context (root, .devia, f
    ↓
 src/commands/*.mjs     one file per command, each exporting a default (ctx, name) => exit code
    ↓
-src/lib/*.mjs          yaml · markdown · fs · git · rules · ui · vendor · version — no command logic
+src/lib/*.mjs          yaml · markdown · fs · git · rules · gates · tokens · context ·
+                       sanitize · contribution · ui · vendor · version — no command logic
    ↓
 content                rules/ · standard/ · checklists/ · templates/ (read, never imported)
 ```
@@ -60,6 +61,15 @@ Content is data. Code reads it; code never encodes what a rule says.
 | `check` scans what git carries, not what the disk holds | A P0 failure on an ignored build artefact is a false positive that teaches people to ignore the gate | `src/lib/git.mjs` |
 | Design rule IDs carried over unchanged | Consolidation must not invalidate existing citations | `MIGRATION.md` |
 | A check that cannot answer returns SKIP | `PASS` must mean verified, never assumed | `src/commands/check.mjs` |
+| The gate table is data in `src/lib/gates.mjs`, not structure inside `check` | Two readers need it and only one has a repository to scan: `check` attaches behaviour, `context` asks whether a rule is machine-enforced. One table is what stops the two answers drifting | `src/lib/gates.mjs`, `src/lib/context.mjs` |
+| Context is routed and budgeted, never dumped | More context is not better context: the standard is ~19k tokens and a task needs a fraction of it | `src/lib/context.mjs`, `scripts/benchmark-context.mjs` |
+| A target is not a floor, and both are printed | Reporting "target 600, selected 1380" made a stated design read as a broken promise. Three numbers now travel together: target, mandatory floor, selected — plus the status that reconciles them | `src/lib/context.mjs` `select`, `src/commands/context.mjs` `report` |
+| `advisory` keeps every mandatory item whole; `strict` never exceeds | Two honest promises beat one vague one. Advisory reports `over` and includes the floor anyway; strict compresses mandatory items toward their identifier — never dropping one — and says `impossible` rather than going over | `src/lib/context.mjs` `SMALLEST`, `LADDER` |
+| Compression is minimal, and restores upward | The first version degraded everything and then spent the freed tokens on *optional* rules at full text. Every mandatory item now starts at its smallest form and is bought back in relevance order | `src/lib/context.mjs` `select` |
+| The impact map is a router, not only a checklist | It is the one routing table the project wrote, in the project's own vocabulary. A declared change type routes the domains of the memory files it names, so `new_consent_record` routes as well as a built-in | `src/lib/context.mjs` `matchedChangeTypes` |
+| Every run is bound to its fixture and its devia | `fixed` means devia saw the problem and then saw it gone — same fixture, different devia. Without both digests, editing the fixture until it passes reads exactly like fixing the tool | `src/lib/contribution.mjs` `evidenceChain` |
+| A contribution is eligible because devia reproduced it | An agent that can file an issue will invent reasons to. The state is computed from a re-run, bound to a hash of the claim, so editing the claim drops the verdict instead of carrying it forward | `src/lib/contribution.mjs` |
+| devia never holds a GitHub token | The contribution path hands a prepared file to `gh` under an identity the project declared. A tool that stores credentials to be helpful is a tool that leaks them | `src/commands/contribute.mjs`, `.devia/04_PERMISSIONS.md` |
 | devia is for every agent | No agent is privileged: a surface that serves one must say why the others are not served, and record the gap. Absence of evidence about an agent is reported as SKIP, never as "unsupported" | `.devia/11_GAPS.md` G6, `src/commands/skills.mjs` |
 | The npm package is scoped, the command is not | npm refused the bare name `devia` as too similar to `degit`, `dexie` and `dva`; scoped names skip that filter. Docs say `npm i -D @schneiderjoseph/devia`, then `npx devia` | `package.json` |
 

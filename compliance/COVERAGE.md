@@ -4,15 +4,15 @@
 
 | Metric | Value |
 |---|---|
-| Rules total | 138 |
-| Active | 138 |
-| MUST | 103 |
-| MUST NOT | 11 |
-| SHOULD | 24 |
-| P0 | 44 |
-| P1 | 70 |
-| P2 | 24 |
-| Automatable | 53 |
+| Rules total | 141 |
+| Active | 141 |
+| MUST | 104 |
+| MUST NOT | 12 |
+| SHOULD | 25 |
+| P0 | 45 |
+| P1 | 71 |
+| P2 | 25 |
+| Automatable | 56 |
 | Domains | 23 |
 
 ## By domain
@@ -20,7 +20,7 @@
 | Domain | Rules | P0 |
 |---|---|---|
 | accessibility | 12 | 5 |
-| agent | 11 | 6 |
+| agent | 13 | 6 |
 | ai | 5 | 2 |
 | api | 6 | 1 |
 | architecture | 6 | 0 |
@@ -35,7 +35,7 @@
 | memory | 11 | 3 |
 | motion | 1 | 0 |
 | observability | 4 | 0 |
-| privacy | 4 | 0 |
+| privacy | 5 | 1 |
 | responsive | 3 | 2 |
 | security | 12 | 7 |
 | states | 4 | 0 |

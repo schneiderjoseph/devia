@@ -1,6 +1,6 @@
 {
-  "deviaVersion": "0.1.0",
-  "standardVersion": "0.1.0",
+  "deviaVersion": "0.8.0",
+  "standardVersion": "0.2.0",
   "project": {
     "name": "devia",
     "profile": "cli"
@@ -18,6 +18,13 @@
     "engineering": true,
     "design": false,
     "memory": true
+  },
+  "context": {
+    "budget": 2400,
+    "mode": "advisory"
+  },
+  "contribution": {
+    "enabled": true
   },
   "waivers": [],
   "initializedAt": "2026-09-03"

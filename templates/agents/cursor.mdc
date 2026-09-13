@@ -25,3 +25,7 @@ This repository runs on devia. `.devia/` is the project memory and it is not opt
 8. Update `.devia/` in the same change, per `.devia/impact-map.yaml` (MEM-009).
 9. Cite rule IDs, and always report what you did **not** verify (AGT-006, AGT-007).
 10. Never claim done or production ready without naming the checks that ran (AGT-005).
+11. For the rules that apply to the task rather than all of them, run
+    `npx devia context "<task>"`; `--explain` says why each item was included (AGT-013).
+12. A problem in devia itself goes through `npx devia contribute` — evidence and a reproduction
+    first, this repository never uploaded, nothing sent without `--yes` (AGT-012, PRIV-005).

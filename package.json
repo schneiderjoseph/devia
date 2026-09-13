@@ -1,6 +1,6 @@
 {
   "name": "@schneiderjoseph/devia",
-  "version": "0.6.0",
+  "version": "0.8.0",
   "description": "One standard, one memory: engineering and design rules plus living project memory for AI coding agents",
   "type": "module",
   "license": "MIT",
@@ -62,6 +62,7 @@
     "validate:rules": "node scripts/validate-rules.mjs",
     "validate:links": "node scripts/validate-links.mjs",
     "test": "node --test",
+    "benchmark:context": "node scripts/benchmark-context.mjs",
     "prepublishOnly": "npm run validate && npm test && node bin/devia.mjs check --root . && node bin/devia.mjs validate",
     "check": "node bin/devia.mjs check --root ."
   },

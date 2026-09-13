@@ -13,3 +13,4 @@ This repository runs on devia. The project memory is `.devia/`.
   complete states — including empty, loading and error.
 - Suggest the matching `.devia/` update alongside the code change.
 - Never suggest disabling a test, skipping a hook, or loosening a check to make CI pass.
+- `npx devia context "<task>"` returns the rules that apply to one task instead of all of them.

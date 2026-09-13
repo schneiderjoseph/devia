@@ -29,9 +29,15 @@
 | Commands | [`../src/commands/`](../src/commands/init.mjs) |
 | YAML subset parser | [`../src/lib/yaml.mjs`](../src/lib/yaml.mjs) |
 | Rule loading and invariants | [`../src/lib/rules.mjs`](../src/lib/rules.mjs) |
+| Gate table, shared by check and context | [`../src/lib/gates.mjs`](../src/lib/gates.mjs) |
+| Context routing, tiers and budget | [`../src/lib/context.mjs`](../src/lib/context.mjs) |
+| Token estimation | [`../src/lib/tokens.mjs`](../src/lib/tokens.mjs) |
+| Redaction and payload residue | [`../src/lib/sanitize.mjs`](../src/lib/sanitize.mjs) |
+| Contribution evidence and eligibility | [`../src/lib/contribution.mjs`](../src/lib/contribution.mjs) |
 | Filesystem helpers | [`../src/lib/fs.mjs`](../src/lib/fs.mjs) |
 | Terminal output | [`../src/lib/ui.mjs`](../src/lib/ui.mjs) |
 | Index generator | [`../scripts/build-index.mjs`](../scripts/build-index.mjs) |
+| Context benchmark | [`../scripts/benchmark-context.mjs`](../scripts/benchmark-context.mjs) |
 | Repository validators | [`../scripts/validate-rules.mjs`](../scripts/validate-rules.mjs), [`../scripts/validate-links.mjs`](../scripts/validate-links.mjs) |
 | Tests | [`../tests/`](../tests/cli.test.mjs) |
 | CI | [`../.github/workflows/ci.yml`](../.github/workflows/ci.yml) |

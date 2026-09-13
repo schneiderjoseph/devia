@@ -33,3 +33,13 @@ Report the checks that ran, the rule IDs involved, and what you did **not** veri
 
 Rules by ID: `npx devia rules --id SEC-001`, or by domain: `npx devia rules --domain database`.
 A pinned copy lives under `.devia/standard/` only if this project ran `devia sync`.
+
+For the rules that apply to the task in front of you, rather than all of them:
+
+```bash
+npx devia context "<what you are about to do>"     # --explain says why each item is there
+```
+
+Found a problem in devia itself rather than in this project? `npx devia contribute` prepares an
+issue or a pull request from evidence, without exposing this repository, and sends nothing
+without `--yes`.

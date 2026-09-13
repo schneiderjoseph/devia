@@ -445,6 +445,38 @@ test("init does not pin the standard, and the memory still resolves without it",
   }
 });
 
+// The template tells adopters that `payload/` is disposable and gitignored. Saying so without
+// writing it is the kind of false statement this repository treats as a defect, so `init`
+// writes a nested ignore file inside the directory devia owns rather than editing the project's.
+test("init writes the ignore file the memory's README promises", () => {
+  const dir = scratch();
+  try {
+    devia(["init", "--root", dir, "--no-vendor"], dir);
+    const ignore = fs.readFileSync(path.join(dir, ".devia", ".gitignore"), "utf8");
+    assert.match(ignore, /^reader\.html$/m);
+    assert.match(ignore, /^contributions\/\*\/payload\/$/m);
+    // The project's own .gitignore is never touched: devia owns .devia/, not the root file.
+    assert.ok(!fs.existsSync(path.join(dir, ".gitignore")));
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("init writes the context budget and leaves the contribution identity unset", () => {
+  const dir = scratch();
+  try {
+    devia(["init", "--root", dir, "--no-vendor"], dir);
+    const config = JSON.parse(fs.readFileSync(path.join(dir, ".devia", "devia.json"), "utf8"));
+    assert.ok(config.context.budget > 0, "the target must be visible, not folklore");
+    assert.equal(config.context.mode, "advisory", "the default mode never exceeds a promise");
+    assert.equal(config.contribution.enabled, true);
+    // No identity means nothing can be published, whatever else is configured.
+    assert.equal(config.contribution.identity, undefined);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("devia.json records the CLI version, not the standard version", () => {
   const dir = scratch();
   try {

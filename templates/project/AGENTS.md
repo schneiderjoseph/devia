@@ -29,8 +29,9 @@ Then work. Then update this memory in the same change.
 ## Checks
 
 ```bash
-npx devia validate     # memory integrity
-npx devia check        # readiness gates (P0 blocks)
+npx devia context "<task>"   # the rules that apply here, not all of them
+npx devia validate           # memory integrity
+npx devia check              # readiness gates (P0 blocks)
 ```
 
 TODO(devia): add this project's own commands — install, dev, test, lint, migrate.

@@ -18,6 +18,10 @@ build/
 # Généré par `devia read` — un instantané de la mémoire, pas la mémoire
 .devia/reader.html
 
+# Généré par `devia contribute submit` — reconstruit depuis le record et le fixture,
+# qui eux sont des preuves et restent versionnés
+.devia/contributions/*/payload/
+
 # Local secrets / audits
 *.pem
 *.key

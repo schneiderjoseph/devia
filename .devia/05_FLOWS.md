@@ -13,6 +13,8 @@
 | Record | `devia gap add` / `devia debt add` / `debt close` → monotone ids, nothing deleted | "gap and debt lines get monotone ids…" |
 | Upgrade | `devia sync` → standard pinned or refreshed, pin updated, memory untouched | "sync pins the standard on demand" |
 | Cite | `devia rules --id SEC-001` → the full rule text | "rules can be queried by id and by filter" |
+| Brief | `devia context "<task>"` → the blocking set, then what fits the budget | `tests/context.test.mjs`, `scripts/benchmark-context.mjs` |
+| Contribute | `contribute new → repro → verify → submit` → nothing sent without `--yes` | `tests/contribute.test.mjs` |
 
 ## Failure behaviour
 
@@ -24,5 +26,10 @@
 | Gate | A check cannot determine an answer | `SKIP` with the reason | Never counts as a pass |
 | Upgrade | The pinned version differs from the installed one | `validate` and `doctor` warn and name `devia sync` | Leaves the pin until sync runs |
 | Any | An unexpected exception | `devia: <message>` (stack with `DEVIA_DEBUG=1`) | Exits 1 |
+| Brief | The budget is too small for the blocking set | `OVERRUN` and the blocking cost | Includes them anyway; a budget never evicts a P0 |
+| Contribute | The problem was never reproduced | The blocker and the command that would reproduce it | Refuses to submit; writes the payload for reading |
+| Contribute | A secret survives into the payload | `not sanitized` and what survived | Blocks the upload — it is never downgraded to a warning |
+| Contribute | No identity, or `gh` authenticated as someone else | The mismatch, named | Sends nothing, and says nothing was sent |
 
-The rule behind the whole table: silence is never a pass.
+The rule behind the whole table: silence is never a pass, and nothing leaves the machine without
+a sentence saying it did.

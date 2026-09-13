@@ -45,6 +45,17 @@ npx devia doctor        # adoption, drift, staleness
 
 `devia check` aggregates evidence into PASS / WARN / FAIL and exits non-zero on any P0 FAIL.
 
+### A check earns its rule's tokens back
+
+A rule this level verifies deterministically does not need its full text repeated into an agent's
+context. `devia context` delivers it as a citation — `SEC-002 → devia check SEC-SECRETS (P0) →
+blocks the change` — and spends the saved budget on the rules nothing here can check.
+
+That trade only holds while the gate actually blocks. A `P0` rule whose only gate warns is not
+being stopped by level 2, so its full text stays in the context (`AGT-013`). Automating a check
+is therefore not just enforcement work: it is what makes the level-1 corpus affordable to
+deliver.
+
 ## Level 3 — Enforcement
 
 CI must be able to say **NO** to a pull request.

@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/schneiderjoseph/devia/schema/contribution.schema.json",
+  "title": "DeviaContribution",
+  "description": "Evidence for a devia problem observed in a real repository. Written by `devia contribute` under .devia/contributions/<id>/record.json. It never carries the adopting project's source, and it never carries a state: the state is computed from the verification.",
+  "type": "object",
+  "required": ["id", "created", "type", "source", "devia", "problem"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^C[0-9]+$",
+      "description": "Monotone per repository, never reused after removal (MEM-004)."
+    },
+    "created": { "type": "string", "format": "date" },
+    "type": {
+      "enum": [
+        "bug",
+        "false_positive",
+        "false_negative",
+        "context_overfetch",
+        "documentation",
+        "feature",
+        "security"
+      ]
+    },
+    "source": {
+      "enum": ["real_usage", "manual"],
+      "description": "real_usage carries a re-runnable observation; manual is a deliberate human proposal and routes to an issue only (AGT-012)."
+    },
+    "devia": {
+      "type": "object",
+      "required": ["version"],
+      "properties": {
+        "version": { "type": "string" },
+        "standard": { "type": "string" },
+        "node": { "type": "string" },
+        "platform": { "type": "string" },
+        "arch": { "type": "string" },
+        "component": { "type": ["string", "null"], "description": "The devia command involved." },
+        "gate": { "type": ["string", "null"], "description": "A `devia check` gate id." },
+        "rule": { "type": ["string", "null"], "description": "A rule id." }
+      }
+    },
+    "problem": {
+      "type": "object",
+      "required": ["summary", "expected", "actual"],
+      "properties": {
+        "summary": { "type": "string", "minLength": 1 },
+        "expected": { "type": "string", "minLength": 1 },
+        "actual": { "type": "string", "minLength": 1 }
+      }
+    },
+    "observation": {
+      "type": ["object", "null"],
+      "description": "The invocation devia re-runs, and the two behaviours it is asserted to have. Required when source is real_usage.",
+      "required": ["argv", "expected", "actual"],
+      "properties": {
+        "argv": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "devia arguments, without --root: the reproduction is the working directory."
+        },
+        "expected": { "$ref": "#/$defs/profile" },
+        "actual": { "$ref": "#/$defs/profile" }
+      }
+    },
+    "reproduction": {
+      "type": ["object", "null"],
+      "properties": {
+        "path": { "type": "string" },
+        "built": { "type": "string" },
+        "files": { "type": "integer" },
+        "bytes": { "type": "integer" },
+        "included": {
+          "type": "array",
+          "description": "Files copied from the adopting repository, each sanitized on the way in.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "as": { "type": "string" },
+              "redactions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "kind": { "type": "string" },
+                    "count": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "verification": {
+      "type": ["object", "null"],
+      "description": "What `devia contribute verify` observed. Not a claim the record makes about itself.",
+      "required": ["outcome", "claim"],
+      "properties": {
+        "ran": { "type": "string" },
+        "claim": {
+          "type": "string",
+          "description": "Fingerprint of the claim this verdict was made about. A changed claim drops the record back to `observed`."
+        },
+        "against": { "type": "string" },
+        "deviaVersion": { "type": "string" },
+        "exit": { "type": "integer" },
+        "outcome": { "enum": ["reproduced", "fixed", "inconclusive"] },
+        "note": { "type": "string" }
+      }
+    },
+    "fix": {
+      "type": ["object", "null"],
+      "properties": {
+        "repo": { "type": "string", "description": "A devia checkout. Never read unless named." },
+        "summary": { "type": "string" },
+        "files": { "type": "integer" },
+        "lines": { "type": "integer" },
+        "tests": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Regression tests, relative to the checkout. Without one, the route is an issue."
+        },
+        "architectural": { "type": "boolean" }
+      }
+    }
+  },
+  "$defs": {
+    "profile": {
+      "type": "object",
+      "description": "A machine-checkable assertion about one run. Every field stated must hold; a profile stating nothing never holds.",
+      "properties": {
+        "exit": { "type": "integer" },
+        "matches": { "type": "string", "description": "A regular expression stdout must match." },
+        "absent": { "type": "string", "description": "A regular expression stdout must not match." },
+        "metric": {
+          "type": "string",
+          "description": "Dotted path into the --json body, e.g. context.selected_tokens."
+        },
+        "op": { "enum": ["<", "<=", ">", ">=", "==", "!="] },
+        "value": { "type": "number" }
+      }
+    }
+  },
+  "additionalProperties": true
+}

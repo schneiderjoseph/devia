@@ -10,8 +10,9 @@ This repository is the standard. A change here reaches every project that runs `
 3. Run the checks before asking for review:
 
 ```bash
-npm run validate     # rules, links, generated files current
-npm test             # unit + CLI behaviour
+npm run validate           # rules, links, generated files current
+npm test                   # unit + CLI behaviour
+npm run benchmark:context  # context recall first, reduction second
 node bin/devia.mjs check --root .
 ```
 
@@ -74,6 +75,38 @@ existing adopters or whether they must edit their own memory.
 - No emoji, no AI attribution, no marketing voice.
 - Say what is true, including when it is inconvenient.
 
+## Changing context routing or the budget
+
+`src/lib/context.mjs` decides what an agent receives. Two constraints are not negotiable:
+
+- A mandatory item is admitted before the target is consulted and is never dropped. `advisory`
+  delivers it whole and reports the target as exceeded; `strict` compresses it toward its
+  identifier and never exceeds the target. Neither ever loses it.
+- The target, the mandatory floor and what was selected are three numbers and are reported as
+  three. Collapsing them makes a stated design read as a broken promise.
+- Every selection carries its reason, so `--explain` can answer both "why is this here?" and
+  "why is that not?".
+
+Run `npm run benchmark:context` after any change to the keyword table, the path table, the
+implication table or the tiers. It asserts recall before it reports a reduction and fails on a
+lost blocking rule whatever the percentage says — it is how three real routing defects were
+found, none of which were visible in the percentage.
+
+Anchor a new keyword on a whole word. `key` inside `monkey` and `table` inside a schema change
+are the two failure modes already recorded in `.devia/10_NEVER_ALWAYS.md`.
+
 ## Reporting a problem
 
 Use the issue templates. For a security issue in the CLI, see [`SECURITY.md`](SECURITY.md).
+
+An agent that hit the problem inside a real repository can prepare the report from there with
+`npx devia contribute`, which builds a standalone reproduction rather than exposing that
+repository. A candidate is eligible only once devia reproduced the problem itself, so an issue
+arriving this way already carries a fixture, both behaviours and the version it was seen on. A
+fix with a regression test arrives as a pull request; anything else arrives as an issue.
+
+Review it the way you would any other: read the fixture, run it, and check that the claimed
+behaviour is the behaviour. The report carries an evidence chain — each run bound to a digest of
+the fixture that ran and of the `bin/` + `src/` that ran it — so a `fixed` claim is checkable:
+the two rows must share a fixture and differ in devia. If they do not, devia says so itself and
+the record stays at `reproduced`.
