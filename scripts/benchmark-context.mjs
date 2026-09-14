@@ -343,7 +343,10 @@ for (const shape of corpora) {
 cleanup();
 
 if (json) {
-  console.log(JSON.stringify({ ok: failures.length === 0, failures, rows }, null, 2));
+  // console.log then exit truncates a pipe on POSIX, where stdout is async and this report
+  // runs well past a pipe buffer: the reader parses half a document. writeSync(1) blocks
+  // until it is out, so exiting on the next line cannot cut it short.
+  fs.writeSync(1, JSON.stringify({ ok: failures.length === 0, failures, rows }, null, 2) + "\n");
   process.exit(failures.length ? 1 : 0);
 }
 
@@ -396,6 +399,6 @@ if (failures.length) {
   }
   if (failures.length > 25) console.error(`  …and ${failures.length - 25} more`);
   console.error("\n  A saving that drops a rule the task needed is not a saving.");
-  process.exit(1);
+  process.exitCode = 1;
 }
 console.log("");
