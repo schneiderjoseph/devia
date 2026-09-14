@@ -343,10 +343,18 @@ for (const shape of corpora) {
 cleanup();
 
 if (json) {
-  // console.log then exit truncates a pipe on POSIX, where stdout is async and this report
-  // runs well past a pipe buffer: the reader parses half a document. writeSync(1) blocks
-  // until it is out, so exiting on the next line cannot cut it short.
-  fs.writeSync(1, JSON.stringify({ ok: failures.length === 0, failures, rows }, null, 2) + "\n");
+  // This report is ~180 kB and stdout may be a pipe. console.log then exit loses whatever is
+  // still buffered, and a single writeSync is not enough either: on a non-blocking pipe it
+  // writes what currently fits and returns short, or raises EAGAIN. Either way the reader
+  // parses half a document. Loop until every byte is gone, then exit.
+  const out = Buffer.from(JSON.stringify({ ok: failures.length === 0, failures, rows }, null, 2) + "\n");
+  for (let off = 0; off < out.length; ) {
+    try {
+      off += fs.writeSync(1, out, off, out.length - off);
+    } catch (err) {
+      if (err.code !== "EAGAIN") throw err;
+    }
+  }
   process.exit(failures.length ? 1 : 0);
 }
 
