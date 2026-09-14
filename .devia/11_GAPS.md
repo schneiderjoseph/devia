@@ -15,6 +15,8 @@ Add one with `npx devia gap add "question"`.
 | G4 | Should `devia sync` warn when an adopter has edited a vendored file? | Silent overwrite of a local edit that someone believed was persistent | `sync` reports changed and removed files after the fact | open |
 | G5 | How should a project override a rule's priority for its own context (a docs repo has no `SEC-001` surface)? | Either noisy irrelevant findings, or a habit of ignoring output | Rules apply as written; irrelevant ones are simply not applicable | open |
 | G7 | Should devia read an existing ad-hoc project memory (a DEVIA/ folder of YAML, a docs/context tree) when initialising, or leave the merge to a human? | | | open |
+| G10 | Should `.devia/contributions/` be committed, or is it scratch? The record and the fixture are evidence and version well; `payload/` is generated like `reader.html` | A repository either carries evidence nobody asked for, or loses a reproduction between sessions | Everything is written, and `payload/` is gitignored by the template | open |
+| G12 | Should the never/always list be relevance-filtered instead of always blocking? It is the most valuable thing devia knows and also the largest fixed cost in every selection | Either an earned trap is withheld from the task that would hit it, or small budgets are consumed before any rule is reached | Every line is T0 and never evicted; pruning the list is the project's job, as `10_NEVER_ALWAYS.md` already says | open |
 
 ## Closed
 
@@ -24,3 +26,4 @@ Add one with `npx devia gap add "question"`.
 | G1 | Should `devia check` grow ecosystem-specific gates (Python, Go, Rust) or stay deliberately generic? | Reframed: the failure was not the ecosystem but the assumption that the manifest sits at the repository root — fixed in 0.4.0. Ecosystem-specific gates remain out of scope |
 | G8 | Should devia pin a copy of the standard into every adopter repository by default? | No — opt-in via devia sync. Measured on a real repository: 391 pinned files against 17 of memory, tripling a 211-file project and turning every sync into a 391-file diff |
 | G9 | Should devia render the memory itself, or leave reading to whatever the project already has? | devia renders it: `devia read` writes one self-contained page — no server, no network, no dependency (ARC-004) |
+| G11 | Should `devia check` gate the context budget — fail when a project's blocking set no longer fits its own `context.maxTokens`? | devia check gates it: CTX-BUDGET compares the declared target with the baseline mandatory floor |

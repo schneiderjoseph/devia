@@ -34,6 +34,7 @@ npx devia init                # creates .devia/ + agent adapters
 npx devia validate            # memory integrity
 npx devia check               # production readiness (P0/P1)
 npx devia doctor              # adoption + staleness diagnosis
+npx devia context "<task>"    # the smallest sufficient context for one task
 ```
 
 `devia init` writes:
@@ -55,7 +56,8 @@ npx devia doctor              # adoption + staleness diagnosis
 ├── 13_RECIPES.md        # how to do common tasks in THIS repo
 ├── 14_INDEX.md          # where to find what
 ├── impact-map.yaml      # change type → files that must be updated
-├── devia.json           # profile, modules, maturity target, pinned version
+├── devia.json           # profile, modules, maturity target, pinned version, context budget
+├── contributions/       # optional: evidence for devia problems found in this repo
 └── standard/            # optional: `devia sync` pins a copy of the standard here
 ```
 
@@ -79,6 +81,99 @@ Update .devia/ in the SAME change
 An agent that codes without reading the memory, or that ships code without updating it, has
 failed the task — not styled it differently.
 
+## Reading the memory is not reading all of it
+
+More context is not better context. Everything devia knows about this repository is about 20,000
+estimated tokens; the part that belongs in the window for one task is a fraction of it, and the
+rest pushes out the code the agent is supposed to read.
+
+```bash
+npx devia context "add POST /api/orders"           # the context itself, ready to pipe
+npx devia context "fix the empty state" --explain  # why each item is there, and what was withheld
+npx devia context --stats                          # the accounting
+```
+
+```text
+Target              2400 tokens  (advisory)
+Mandatory floor     2001 tokens in 36 items
+Selected            2400 tokens in 43 items
+Raw corpus         19882 tokens (estimated)
+Reduction           87.9 %
+
+Status           WITHIN TARGET
+```
+
+**Three numbers, not one.** A target is what you asked for; the mandatory floor is what the
+blocking items cost; selected is what you got. Collapsing them is how "target 600, selected 1380"
+comes to look like a broken promise instead of a stated design.
+
+Two modes make the promise explicit:
+
+| | `advisory` (default) | `strict` |
+|---|---|---|
+| Mandatory items | always whole | compressed toward their identifier, never dropped |
+| The target | may be exceeded, and says so | never exceeded |
+| When it cannot fit | `OVER TARGET`, with the floor | `IMPOSSIBLE` — nothing is produced, exit 1 |
+
+Compression is minimal and reversible: every mandatory item starts at its smallest form and is
+bought back toward full text in relevance order, so a larger target always returns more text.
+
+Two things hold it up:
+
+- **A blocking constraint is never dropped.** Not by a small target, not by a strict one. `npm
+  run benchmark:context` measures exactly that across 352 runs and fails on a lost blocking rule
+  whatever it saved.
+- **A rule devia verifies itself is cited, not recited.** `SEC-002` arrives as
+  `checked by devia check → SEC-SECRETS (P0) → blocks the change` instead of its full text,
+  because the gate is what stops the change, not the agent's memory of the sentence. The
+  exception carries the rule: a P0 whose only gate *warns* keeps its text, since nothing is
+  actually stopping it (`AGT-013`).
+
+Every selection can answer "why is this here?" and "why is that not?". A selector nobody can
+interrogate is a selector nobody should trust.
+
+Routing starts from the table *your project* already wrote. `impact-map.yaml` says a
+`permission_change` updates `04_PERMISSIONS.md`, and that file speaks for security and privacy —
+so a permission change routes to security without anyone teaching devia your word for it. A
+project that invents `new_consent_record` routes exactly as well as a built-in change type does.
+
+## Contributing back from a real repository
+
+An agent using devia inside your project will sometimes hit a devia problem — a gate that fires
+on valid code, a check that misses one, a context selection that spends its budget badly.
+`devia contribute` turns that into an issue or a pull request, under two hard constraints.
+
+**Your project stays your project.** Nothing is uploaded. The payload is a standalone fixture the
+contributor wrote, devia's own version metadata, and the expected and actual behaviour. Secrets,
+tokens, addresses, IP addresses, your home directory, your account name and the repository path
+are redacted on the way in; an environment file is refused outright rather than sanitized and
+copied. The finished payload is re-scanned, and a surviving secret shape blocks the upload
+instead of warning about it. `submit` prints every byte first, and sends nothing without `--yes`.
+
+**Evidence, not opinion.** "devia could support X" is not a contribution. A candidate becomes
+eligible because devia re-ran the recorded invocation inside the minimal case and observed the
+reported behaviour:
+
+```text
+observed  →  reproduced  →  fixed  →  issue or pull request
+```
+
+`reproduced` is never something the record says about itself. Every run is bound to two digests —
+the fixture that ran and the devia source that ran it — so `fixed` means the two runs agreed
+about the experiment and disagreed about the tool:
+
+```text
+| Run        | Date       | Fixture  | devia source |
+| reproduced | 2026-09-12 | 3f2a…    | 9c11…        |
+| expected   | 2026-09-13 | 3f2a…    | 4d80…        |
+```
+
+Same fixture, different devia: a maintainer can check that by running the fixture against each.
+Edit the fixture until it passes and the record says so and stays at `reproduced`; edit the claim
+and the state drops back to `observed`. A fix with a regression test is a PR candidate; anything
+else is an issue; a security defect goes to the private advisory path and never becomes either
+(`AGT-012`, `PRIV-005`). Turn the whole feature off with `"contribution": { "enabled": false }`.
+
 ## What the gates actually caught
 
 `PRINCIPLES.md` says evidence beats opinion, so here is the evidence. Every defect below was
@@ -94,10 +189,21 @@ a tool being run in anger, not as a case study.
 | The skill told every agent to bootstrap with `npx devia init`. The package is scoped, so in a repository that has not installed devia that resolves to `404 devia@*` | Installing the skill system-wide, where a cold start is the normal case |
 | Five gates reported `SKIP  no package.json` to a repository that has one, with a lockfile, a lint script and thirteen dependencies. The letter of the rule held — nothing was rounded up to `PASS` — but the reason printed was false | Running `devia check` on a real project instead of a fixture |
 | `MEM-DEBT-P0` matched `P0` anywhere in a debt row. A P1 line reading "becomes P0 once payments ship" reported a P0 blocker on a project that had none | Writing a real project's debt registry |
+| Context routing sent "add POST /api/orders" to `api` alone, dropping `SEC-001` and `SEC-003` — the two rules a write endpoint most needs — at every budget | `npm run benchmark:context`, which asserts recall before reduction |
+| The word "table" routed a schema change through `components` into the whole accessibility corpus. `key` inside `monkey` redacted `monkey: banana` | A benchmark scenario and a test that each name the word that must not match |
+| Strict-mode compression shrank every mandatory rule to a bare identifier, then spent the freed tokens admitting *optional* rules at full text | Reading the strict output at four targets instead of trusting that "it fit" meant "it fit well" |
+| A "noise ratio" metric that was 0.0% in all 352 runs, because nothing could ever score above zero. A metric that always passes measures nothing | Looking at a column of zeros and not believing it |
+| `contribute verify` reported `fixed` when the expected behaviour held — on a fixture that had never once failed. Nothing had been fixed | The test that drives the loop instead of asserting the state machine directly |
+| The contribution report's own Evidence line read `sanitized: not recorded` on a payload that had just been sanitized | Reading the generated issue body instead of the code that generates it |
 
-The last two are the ones worth dwelling on. A check that cannot answer must say so — but a
-`SKIP` with a false reason, or a `FAIL` invented out of prose, is worse than no check at all,
-because the reader believes the tool looked. Both are now regression tests.
+One theme runs through all of them. A check that cannot answer must say so — but a `SKIP` with a
+false reason, a `FAIL` invented out of prose, a `fixed` on something that never broke, or a
+`sanitized: not recorded` on a payload that was sanitized, is worse than no check at all, because
+the reader believes the tool looked. Every line above is now a regression test.
+
+The routing defects are worth dwelling on separately: all three were found by a benchmark that
+refuses to report a saving until it has reported recall, and none of them were visible in the
+percentage. A context optimiser measured only by how much it cut will cut the wrong things.
 
 ## What is in the box
 
@@ -106,7 +212,7 @@ because the reader believes the tool looked. Both are now regression tests.
 | Work contract | [`AGENTS.md`](AGENTS.md) | Workflow, hard stops, output contract |
 | Principles | [`PRINCIPLES.md`](PRINCIPLES.md) | Simple > clever, complexity earned, dependency liability, evidence > opinion |
 | Memory doctrine | [`MEMORY.md`](MEMORY.md) | Registries, sweep discipline, impact map, staleness |
-| Rules | [`rules/`](rules/README.md) | 138 rules with stable IDs, severity, priority, validation |
+| Rules | [`rules/`](rules/README.md) | 141 rules with stable IDs, severity, priority, validation |
 | Engineering | [`standard/engineering/`](standard/engineering/README.md) | Architecture, security (ASVS 5.0), database, API, testing, devops, observability, privacy, payments, AI |
 | Design | [`standard/design/`](standard/design/README.md) | UX, UI, accessibility (WCAG 2.2), states, components, data display, i18n, responsive, anti-patterns |
 | Checklists | [`checklists/`](checklists/README.md) | Engineering + design review gates |

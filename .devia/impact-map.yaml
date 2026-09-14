@@ -34,6 +34,10 @@ impacts:
   stack_change:        ["00_OVERVIEW.md", "01_ARCHITECTURE.md"]
   new_module:          ["00_OVERVIEW.md", "01_ARCHITECTURE.md", "14_INDEX.md"]
 
+  new_command:         ["02_SURFACES.md", "13_RECIPES.md"]
+  new_context_signal:  ["01_ARCHITECTURE.md"]
+  network_surface:     ["02_SURFACES.md", "04_PERMISSIONS.md"]
+
   decision_recorded:   ["11_GAPS.md"]
   rule_not_yet_built:  ["12_DEBT.md"]
   incident_postmortem: ["10_NEVER_ALWAYS.md"]

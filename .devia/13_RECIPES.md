@@ -47,11 +47,50 @@
 5. CHANGELOG.md: does an existing adopter need to act, or is devia sync enough?
 ```
 
+## Change how context is routed or budgeted
+
+```text
+1. src/lib/context.mjs — KEYWORDS, PATH_DOMAINS, IMPLIES, MEMORY_DOMAINS, the tiers, or the
+   degradation ladder (SMALLEST / LADDER)
+2. Anchor any new keyword on a whole word: "key" inside "monkey" is the failure mode
+3. Prefer a signal the project already declared: a change type in impact-map.yaml routes the
+   domains of the memory files it names, in the project's own vocabulary
+4. npm run benchmark:context      # 352 runs: recall and compliance first, reduction second
+5. npm test                       # tests/context.test.mjs holds the safety constraints
+6. If a scenario changed shape, say so in the benchmark's scenario list, not in the assertions
+```
+
+A reduction that drops a rule the task needed is not a reduction. The benchmark fails on a lost
+blocking rule and on a strict target that exceeded itself, whatever either saved.
+
+Three numbers, never one: target, mandatory floor, selected. `advisory` delivers the floor whole
+and reports the target as exceeded; `strict` compresses toward identifiers and never exceeds it.
+Neither ever drops a mandatory item.
+
+## Prepare a contribution from a devia problem hit elsewhere
+
+```text
+1. In the repository where it happened:
+     devia contribute new --type <t> --summary ... --expected ... --actual ...
+       --argv "<the invocation>" --actual-... --expect-...
+2. devia contribute repro <ID>     # then make the fixture actually fail
+3. devia contribute verify <ID>    # this is the gate: reproduced, or nothing
+4. Fix it in a devia checkout, add the regression test
+5. devia contribute verify <ID> --devia <checkout>      # reproduced -> fixed
+6. devia contribute submit <ID> --fix-repo <checkout> --fix-tests tests/x.test.mjs
+7. Read payload/ — every byte that would be sent is there
+8. Push the branch, then: devia contribute submit <ID> --yes
+```
+
+The two assertions must tell the two behaviours apart. A gate id appears in `--json` whether the
+gate passed or failed, so assert on the `blocking` list, an exit code, or a metric.
+
 ## Run the checks
 
 ```bash
 npm run validate                  # rules, links, generated files
 npm test                          # unit + CLI behaviour
+npm run benchmark:context         # context recall and reduction
 node bin/devia.mjs check --root . # the standard passes its own gates
 node bin/devia.mjs validate       # this repository's own memory
 ```

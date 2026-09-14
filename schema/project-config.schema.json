@@ -48,6 +48,45 @@
         "memory": { "type": "boolean" }
       }
     },
+    "context": {
+      "type": "object",
+      "description": "Target and mode for `devia context`. Absent means the built-in defaults; the selector degrades to them rather than failing.",
+      "properties": {
+        "budget": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Estimated tokens one task's context should cost. A target, not a floor: the mandatory items are admitted before it is consulted, and `mode` decides what happens when they cost more."
+        },
+        "maxTokens": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The first shipped spelling of `budget`. Still read when `budget` is absent, so an early adopter keeps working untouched."
+        },
+        "mode": {
+          "enum": ["advisory", "strict"],
+          "default": "advisory",
+          "description": "advisory: mandatory items are always delivered whole and the target is reported as exceeded. strict: the target is never exceeded — mandatory items are compressed toward their identifier, never dropped, and a target too small for even that is reported as impossible rather than silently exceeded."
+        }
+      }
+    },
+    "contribution": {
+      "type": "object",
+      "description": "`devia contribute`. Everything local works without this; nothing leaves the machine without it.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "false turns the whole feature off, locally included."
+        },
+        "identity": {
+          "type": "string",
+          "description": "The GitHub account a contribution is published under. Never the maintainer's, never inferred from the user's git config."
+        },
+        "remote": {
+          "type": "string",
+          "description": "owner/repo to file against. Defaults to the devia repository."
+        }
+      }
+    },
     "waivers": {
       "type": "array",
       "description": "Time-boxed exceptions. An expired or undated waiver fails `devia check`.",

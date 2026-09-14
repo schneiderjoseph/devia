@@ -42,11 +42,19 @@ jobs:
           test -f skills/devia/SKILL.md
           test -f templates/github/workflows/app-ci.yml
           test -f templates/project/AGENTS.md
+          test -f schema/contribution.schema.json
+          test -f scripts/benchmark-context.mjs
       - name: Dependency audit
         run: npm audit --audit-level=high
       - name: Rules · links · generated files
         run: npm run validate
       - name: Unit tests
         run: npm test
+      # A reduction that drops a rule the task needed is not a reduction, and the percentage
+      # never says so. This fails on a lost blocking rule whatever it saved.
+      - name: Context recall and reduction
+        run: npm run benchmark:context
       - name: The standard passes its own gates
         run: node bin/devia.mjs check --root .
+      - name: This repository's own memory
+        run: node bin/devia.mjs validate

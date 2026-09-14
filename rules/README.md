@@ -23,6 +23,8 @@ Priority is when it blocks (`P0` · `P1` · `P2` · `P3` — see [`MATURITY.md`]
 | [AGT-009](agent/AGT-009.md) | Only original work | MUST NOT | P1 | agent | no | active |
 | [AGT-010](agent/AGT-010.md) | Ask or record instead of guessing | MUST | P1 | agent | no | active |
 | [AGT-011](agent/AGT-011.md) | Never weaken the standard to fit the code | MUST NOT | P0 | agent | yes | active |
+| [AGT-012](agent/AGT-012.md) | Contribute only from a failure that was reproduced | MUST | P1 | agent | yes | active |
+| [AGT-013](agent/AGT-013.md) | Cite a machine-checked rule, do not recite it | SHOULD | P2 | agent | yes | active |
 | [MEM-001](memory/MEM-001.md) | Undecided is never coded as a silent truth | MUST | P0 | memory | no | active |
 | [MEM-002](memory/MEM-002.md) | Decided but not built is recorded as debt | MUST | P1 | memory | no | active |
 | [MEM-003](memory/MEM-003.md) | Debt lines are closed only by the change that discharges them | MUST | P1 | memory | no | active |
@@ -79,6 +81,7 @@ Priority is when it blocks (`P0` · `P1` · `P2` · `P3` — see [`MATURITY.md`]
 | [PRIV-002](privacy/PRIV-002.md) | Retention and deletion are defined and implemented | MUST | P1 | privacy | no | active |
 | [PRIV-003](privacy/PRIV-003.md) | Users can obtain and erase their data | MUST | P1 | privacy | no | active |
 | [PRIV-004](privacy/PRIV-004.md) | Personal data stays out of logs, analytics and prompts | MUST | P1 | privacy | yes | active |
+| [PRIV-005](privacy/PRIV-005.md) | A tool contribution carries evidence, never the repository | MUST NOT | P0 | privacy | yes | active |
 | [SEC-001](security/SEC-001.md) | Server-side authorization on every sensitive operation | MUST | P0 | security | no | active |
 | [SEC-002](security/SEC-002.md) | No secrets in source, config, logs or client bundles | MUST NOT | P0 | security | yes | active |
 | [SEC-003](security/SEC-003.md) | External input is validated before use | MUST | P0 | security | yes | active |
@@ -161,6 +164,6 @@ Priority is when it blocks (`P0` · `P1` · `P2` · `P3` — see [`MATURITY.md`]
 | [UX-012](ux/UX-012.md) | Human-readable errors | MUST | P1 | ux | no | active |
 | [UX-013](ux/UX-013.md) | Progressive disclosure | SHOULD | P2 | ux | no | active |
 
-**Total:** 138 rules · 138 active · 53 automatable · schema v1
+**Total:** 141 rules · 141 active · 56 automatable · schema v1
 
 Lifecycle and supersession: [`LIFECYCLE.md`](LIFECYCLE.md).

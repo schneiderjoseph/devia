@@ -79,6 +79,10 @@ Report what changed, and report what was NOT verified
 - Deleting a gap or debt line you did not discharge
 - Third-party documentation, schemas, or assets pasted in as original work
 - Claiming WCAG conformance without contrast, keyboard, and accessible-name evidence
+- Sending anything from this repository to a third party — including a tool's issue tracker —
+  without explicit authorisation for that specific payload
+- Filing an issue or a pull request against a tool from a problem you described but never
+  reproduced
 
 ## You may NOT declare "production ready" unless
 
@@ -114,6 +118,8 @@ for the human. Passing unit tests is not Gold maturity — see [`MATURITY.md`](M
 | Any user-facing UI | `standard/design/`, `rules/ux/`, `rules/ui/`, `rules/accessibility/`, `rules/states/` |
 | Money, dates, numbers on screen | `standard/design/data-display/`, `rules/data-display/` |
 | "Is it production ready?" | `checklists/engineering/production.md` + `devia check` |
+| Which rules apply to the task in front of you | `devia context "<task>"` — routed, budgeted, and it says why |
+| A devia problem you hit while working here | `devia contribute` — evidence first, `AGT-012`, `PRIV-005` |
 
 ## UI work is not exempt
 

@@ -38,7 +38,31 @@ the difference between a task and a guess (`AGT-002`).
 3. `.devia/00_OVERVIEW.md` — what this project is
 4. The memory file for the surface you are about to touch (`.devia/14_INDEX.md`)
 
-## Step 2 — work under the rules
+## Step 2 — ask for the context this task needs
+
+Do not read the whole standard. Ask for the part of it this task needs:
+
+```bash
+npx devia context "add POST /api/orders"
+npx devia context "fix the empty state" --files src/components/Orders.tsx
+npx devia context "refund flow" --diff --explain
+```
+
+It returns the mandatory constraints for the task first — this project's own never/always lines,
+the P0 rules for the surfaces involved, and the impact-map duty — then whatever else fits the
+target. Roughly a tenth the size of everything devia knows, and it can tell you why any item is
+there or missing (`--explain`).
+
+It reports three numbers, and they mean different things: the **target** you asked for, the
+**mandatory floor** those constraints cost, and what was **selected**. A mandatory item is never
+dropped — in `strict` mode it shrinks to its identifier rather than going over the target, and a
+rule shown that way is one you must read with `devia rules --id <ID>` before relying on it.
+
+A rule shown as `checked by devia check → SEC-SECRETS (P0) → blocks the change` is verified
+deterministically: you do not need its text, you need to not trip the gate. A rule shown with its
+full requirement has nothing checking it but you.
+
+## Step 3 — work under the rules
 
 The rules have stable IDs and are read with `npx devia rules --id <ID>`, or `--domain <name>`
 for a whole area. A project that ran `devia sync` also has them on disk under
@@ -64,7 +88,7 @@ npx devia rules --id SEC-001
 npx devia rules --domain database --priority P0
 ```
 
-## Step 3 — update the memory in the same change
+## Step 4 — update the memory in the same change
 
 `.devia/impact-map.yaml` maps what you changed to the memory files that must change with it
 (`MEM-009`). New endpoint → `02_SURFACES.md`. New table → `03_DATA_MODEL.md`. Permission change
@@ -79,7 +103,7 @@ npx devia debt add "Refund endpoint has no idempotency key (API-004)"
 
 Never delete a gap or debt line you did not discharge (`MEM-011`).
 
-## Step 4 — verify, then report
+## Step 5 — verify, then report
 
 ```bash
 npx devia validate     # memory integrity: structure, registries, placeholders
@@ -101,6 +125,32 @@ Report with:
 ```
 
 For a non-trivial change, "Not verified" is never empty.
+
+## If devia itself is what went wrong
+
+A gate that fires on valid code, a check that misses one, a context selection that spends its
+budget badly — that is a devia problem, and it can be reported from here without exposing this
+repository.
+
+```bash
+npx devia contribute new --type false_positive --gate <ID> \
+  --summary "..." --expected "..." --actual "..." \
+  --argv "check --json" --actual-matches '"blocking": \[[^\]]*"<ID>"' \
+  --expect-absent '"blocking": \[[^\]]*"<ID>"'
+npx devia contribute repro C1     # then make the fixture actually fail
+npx devia contribute verify C1    # the gate: reproduced, or there is nothing to report
+npx devia contribute submit C1    # writes the payload and prints the command; sends nothing
+```
+
+Three things are not negotiable:
+
+- **Evidence, not opinion.** "devia could support X" is not a contribution (`AGT-012`). Only a
+  problem devia re-ran and reproduced is eligible. A deliberate proposal uses `--manual`, and
+  becomes an issue, never a pull request.
+- **This repository does not leave the machine** (`PRIV-005`). The payload is a standalone
+  fixture, devia's version metadata, and the two behaviours. Read `payload/` before you agree
+  to anything.
+- **Nothing is sent without `--yes`**, and never under an identity the project did not declare.
 
 ## Installing the contract for other agents
 

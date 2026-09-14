@@ -15,3 +15,6 @@ This repository runs on devia. `.devia/` is the project memory.
 7. Never disable a test, bypass a hook, or weaken a rule to go green.
 8. Update `.devia/` in the same change (`.devia/impact-map.yaml`).
 9. Report the checks you ran, the rule IDs, and what you did not verify.
+10. `npx devia context "<task>"` gives the rules for one task instead of the whole standard.
+11. A problem in devia itself goes through `npx devia contribute`: reproduce it first, and
+    nothing leaves this repository without `--yes`.

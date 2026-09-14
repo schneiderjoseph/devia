@@ -43,6 +43,8 @@ Automated check or recorded manual review
 | [AGT-009](../rules/agent/AGT-009.md) | agent | MUST NOT | P1 | devia | — | manual |
 | [AGT-010](../rules/agent/AGT-010.md) | agent | MUST | P1 | devia | — | manual |
 | [AGT-011](../rules/agent/AGT-011.md) | agent | MUST NOT | P0 | devia | — | automated + manual |
+| [AGT-012](../rules/agent/AGT-012.md) | agent | MUST | P1 | devia | — | automated + manual |
+| [AGT-013](../rules/agent/AGT-013.md) | agent | SHOULD | P2 | devia | — | automated |
 | [AI-001](../rules/ai/AI-001.md) | ai | MUST | P0 | OWASP LLM Top 10 | — | manual |
 | [AI-002](../rules/ai/AI-002.md) | ai | MUST | P0 | OWASP LLM Top 10 | — | automated + manual |
 | [AI-003](../rules/ai/AI-003.md) | ai | MUST | P1 | OWASP LLM Top 10 | — | automated + manual |
@@ -113,6 +115,7 @@ Automated check or recorded manual review
 | [PRIV-002](../rules/privacy/PRIV-002.md) | privacy | MUST | P1 | GDPR principles | — | manual |
 | [PRIV-003](../rules/privacy/PRIV-003.md) | privacy | MUST | P1 | GDPR principles | — | manual |
 | [PRIV-004](../rules/privacy/PRIV-004.md) | privacy | MUST | P1 | GDPR principles | — | automated + manual |
+| [PRIV-005](../rules/privacy/PRIV-005.md) | privacy | MUST NOT | P0 | devia | — | automated + manual |
 | [RWD-001](../rules/responsive/RWD-001.md) | responsive | MUST | P1 | WCAG-2.2 | — | manual |
 | [RWD-002](../rules/responsive/RWD-002.md) | responsive | MUST | P0 | WCAG-2.2 | 1.4.10 | manual |
 | [RWD-003](../rules/responsive/RWD-003.md) | responsive | MUST | P0 | WCAG-2.2 | 2.5.1 | manual |

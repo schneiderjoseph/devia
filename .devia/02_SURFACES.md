@@ -13,15 +13,33 @@
 | `devia doctor` | Adoption, drift, staleness | `src/commands/doctor.mjs` | 1 when there is no `.devia/` |
 | `devia rules` | Query the registry | `src/commands/rules.mjs` | 1 when `--id` is unknown |
 | `devia read` | Render the memory as one self-contained page | `src/commands/read.mjs` | 1 without `.devia/` |
+| `devia context` | The smallest sufficient context for one task | `src/commands/context.mjs` | 1 without `.devia/`, or when a strict target cannot hold the mandatory set |
 | `devia sync` | Pin the standard, or refresh a pinned copy | `src/commands/sync.mjs` | 1 without `.devia/` |
 | `devia skills` | Install adapters and the skill pack, per repository or `--global` | `src/commands/skills.mjs` | 2 on a bad action |
 | `devia gap` / `devia debt` | Registry lines | `src/commands/registry.mjs` | 1 when the id is unknown |
+| `devia contribute` | A devia problem observed here, as an issue or a pull request | `src/commands/contribute.mjs` | 1 when a candidate is not eligible, 2 on a bad action |
 
 Global flags: `--root`, `--json`, `--help`, `--version` (prints the CLI **and** standard
 versions — an adopter pins one and reports the other).
 
 `init` alone refuses to act on a root it inferred that is not the current directory: `--root` to
 say where, or `--yes` to accept it. Nothing is written before that question is settled.
+
+## The one surface that can reach the network
+
+`devia contribute submit --yes` is the only command in devia that can make a network request, and
+it makes it by handing a prepared file to `gh`. Everything else — recording, reproducing,
+verifying, rendering the payload — is local, and `submit` without `--yes` writes the payload and
+prints the command rather than running it.
+
+| Step | Reaches the network | Guard |
+|---|---|---|
+| `contribute new` · `repro` · `verify` · `show` | No | — |
+| `contribute submit` | No | Writes `payload/` and prints the `gh` command |
+| `contribute submit --yes` | Yes, through `gh` | Eligible · payload clean · identity declared and not the maintainer · `gh` authenticated as that identity |
+
+devia holds no GitHub token, reads none from the environment, and never commits or pushes in a
+checkout. A pull request is opened only against a branch the contributor already pushed.
 
 ## Package exports
 
@@ -39,6 +57,7 @@ say where, or `--yes` to accept it. Nothing is written before that question is s
 | `init`, `skills install` | `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/devia.mdc`, `.github/copilot-instructions.md`, `.windsurfrules` |
 | `skills install --skill` | `.cursor/skills/devia/SKILL.md`, `.claude/skills/devia/SKILL.md` |
 | `read` | `.devia/reader.html` — a generated snapshot, gitignored, never the source |
+| `contribute` | `.devia/contributions/<id>/` — the record, the fixture, and a generated `payload/` |
 | `skills install --global` | Outside the repository, in each agent's own configuration: `~/.claude/skills/devia/`, `~/.codex/skills/devia/`, `~/.cursor/rules/devia.mdc`, `~/.gemini/GEMINI.md` when empty. Copilot and Windsurf report `SKIP` (`12_DEBT.md` D8) |
 
 `files` in `package.json` decides what npm ships. Adding a directory the CLI reads at runtime

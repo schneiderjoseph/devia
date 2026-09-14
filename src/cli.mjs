@@ -11,6 +11,8 @@ const COMMANDS = {
   doctor: () => import("./commands/doctor.mjs"),
   rules: () => import("./commands/rules.mjs"),
   read: () => import("./commands/read.mjs"),
+  context: () => import("./commands/context.mjs"),
+  contribute: () => import("./commands/contribute.mjs"),
   sync: () => import("./commands/sync.mjs"),
   skills: () => import("./commands/skills.mjs"),
   gap: () => import("./commands/registry.mjs"),
@@ -26,10 +28,12 @@ ${color.bold("devia")} — one standard, one memory
   ${color.bold("devia doctor")}      adoption, drift and staleness diagnosis
   ${color.bold("devia rules")}       list or show rules from the registry
   ${color.bold("devia read")}        render the memory as one self-contained page
+  ${color.bold("devia context")}     the smallest sufficient context for one task
   ${color.bold("devia sync")}        pin the standard under .devia/standard/, or refresh it
   ${color.bold("devia skills")}      install the agent adapters (install --agent all)
   ${color.bold("devia gap")}         add or close a line in 11_GAPS.md
   ${color.bold("devia debt")}        add or close a line in 12_DEBT.md
+  ${color.bold("devia contribute")}  turn a devia problem you hit here into an issue or a PR
 
 Common flags
 
