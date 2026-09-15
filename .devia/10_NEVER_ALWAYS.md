@@ -4,6 +4,14 @@
 
 ## Never
 
+- **Never accept a failure message as a diagnosis.** `devia update` reported "could not reach
+  the registry" and the registry was fine: `npm view` returns a bare scalar when only one of the
+  asked-for fields resolves, and `npm.cmd` cannot be spawned without a shell since the fix for
+  CVE-2024-27980. Two bugs wearing the same sentence, and that sentence looked like somebody
+  else's problem. Reproduce the underlying call by hand before believing what the wrapper says.
+- **Never test a code path only through a seeded fixture.** Every update test passed against a
+  hand-written cache while the lookup that fills it was dead. If a function talks to the outside
+  world, one test drives the real thing and tolerates it being unavailable — the rest may seed.
 - **Never let a new check fail a memory an older devia created.** A gate added in version N
   reports `SKIP` with the reason when the file it reads does not exist, and `validate` warns
   rather than failing. An upgrade that fails every existing adopter's build is a bill, not an

@@ -6,7 +6,7 @@ import { color, heading, status, line } from "../lib/ui.mjs";
 import { ADAPTERS } from "./skills.mjs";
 import { requiredMemory, registryIds } from "./validate.mjs";
 import { refreshCache } from "./update.mjs";
-import { status as updateStatus } from "../lib/update.mjs";
+import { status as updateStatus, isNewer } from "../lib/update.mjs";
 import { detectLanguage, t } from "../lib/i18n.mjs";
 
 function lastCommitTime(root, pathspec) {
@@ -149,7 +149,14 @@ ${color.bold("devia doctor")} — adoption, drift and staleness
     const say = t(detectLanguage());
     status("WARN", say.newer(release.latest, release.current), "`devia update` says what it brings");
   } else if (release.latest) {
-    status("PASS", `devia ${release.current}`, "newest published version");
+    // Ahead of the registry is not the same as current: saying "newest published version" to
+    // somebody running an unreleased build is a small lie, and this file is a diagnosis.
+    const ahead = isNewer(release.current, release.latest);
+    status(
+      "PASS",
+      `devia ${release.current}`,
+      ahead ? `ahead of the published ${release.latest}` : "newest published version"
+    );
   } else {
     status("SKIP", `devia ${release.current}`, "registry not reached — `devia update` retries");
   }

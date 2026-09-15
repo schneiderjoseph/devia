@@ -38,7 +38,7 @@ is about **content**: nothing about a repository leaves it except through `contr
 | Sends | A fixture the contributor built and read | The package name |
 | About this repository | Only what was explicitly included | Nothing at all |
 | Through | `gh`, authenticated as the contributor | `npm`, with the user's own registry and proxy |
-| Runs when | `--yes`, per submission | `devia update`, and once a day inside `init` and `doctor` |
+| Runs when | `--yes`, per submission | `devia update`, and once a day inside `doctor` |
 | Can change the project | Opens an issue or a PR | Installs **only** with `update --yes` |
 | Off with | `"contribution": { "enabled": false }` | `DEVIA_NO_UPDATE_CHECK=1`, `"update": { "check": false }`, or CI |
 

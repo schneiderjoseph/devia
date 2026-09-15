@@ -1,6 +1,6 @@
 import path from "node:path";
 import process from "node:process";
-import { execFileSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { exists, readJSON, writeJSON, packageRoot } from "./fs.mjs";
 import { cliVersion } from "./version.mjs";
 
@@ -16,9 +16,13 @@ import { cliVersion } from "./version.mjs";
  * 2. **No runtime dependency, and no HTTP client of its own.** The lookup is handed to `npm`,
  *    which the user already has, already trusts and has already configured with their registry,
  *    proxy and credentials — exactly as `contribute` hands publishing to `gh`.
- * 3. **It never costs a command anything.** Only `init`, `doctor` and `update` refresh; every
- *    other command reads a cached answer or says nothing at all. A version check that adds a
- *    second to `devia check` is a version check somebody disables.
+ * 3. **It never costs a command anything.** Only `doctor` and `update` refresh; every other
+ *    command reads a cached answer or says nothing at all. A version check that adds three
+ *    seconds to `devia check` is a version check somebody disables.
+ *
+ *    `init` deliberately does not: you have just installed devia, so you have the newest one by
+ *    construction, and spending a registry round trip on the tool's first impression buys
+ *    nothing.
  *
  * What it sends: the package name, to the registry the user's own npm is pointed at. Nothing
  * about the repository ever leaves the machine — that promise is `contribute`'s and it is
@@ -38,10 +42,30 @@ export const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const TIMEOUT_MS = 7000;
 
 /**
- * npm is `npm.cmd` on Windows, and `execFile` there will not run a `.cmd` without a shell.
- * Naming the right executable is how this stays off `shell: true`, which would put a package
- * specifier through a command-line parser for no benefit.
+ * Run npm, which is not the same act on every platform.
+ *
+ * On Windows npm is `npm.cmd`, and since the fix for CVE-2024-27980 Node refuses to spawn a
+ * `.cmd` without a shell at all — it throws EINVAL. So Windows goes through a shell, and as one
+ * command **string** rather than a command plus an args array: that combination emits a
+ * DeprecationWarning (DEP0190) on stderr, and a version check does not get to print a warning
+ * into somebody's terminal. The safety the shell would otherwise cost is bought back by never
+ * letting anything variable reach it — every argument is a constant, except the version to
+ * install, which passes `isVersionLike` first and so can hold only digits, dots and a
+ * pre-release tag.
+ *
+ * This was not academic. The first version named `npm.cmd` and left the shell off, so every
+ * lookup on Windows failed — and failed as "could not reach the registry", a sentence
+ * indistinguishable from being offline. It survived a round of manual testing for exactly that
+ * reason.
  */
+export function runNpm(args, options = {}) {
+  if (process.platform === "win32") {
+    return spawnSync(["npm", ...args].join(" "), { ...options, shell: true });
+  }
+  return spawnSync("npm", args, options);
+}
+
+/** The executable name, for callers that only need to report it. */
 export function npmBin() {
   return process.platform === "win32" ? "npm.cmd" : "npm";
 }
@@ -128,18 +152,33 @@ export function isStale(cache, now = Date.now()) {
  * out of it. The alternative was to describe a release devia does not have — which is inventing,
  * and the whole of 0.9.0 is an argument against that (`AGT-004`).
  */
-export function lookupLatest({ npm = npmBin(), timeout = TIMEOUT_MS } = {}) {
-  let raw;
-  try {
-    raw = execFileSync(npm, ["view", `${PACKAGE}@latest`, "version", "devia", "--json"], {
-      encoding: "utf8",
-      timeout,
-      stdio: ["ignore", "pipe", "ignore"],
-      windowsHide: true,
-    });
-  } catch {
-    return null; // offline, no npm, a private registry that 404s: all the same answer here
-  }
+export function lookupLatest({ timeout = TIMEOUT_MS } = {}) {
+  // Every argument is a constant, which is what makes the Windows shell safe to use here.
+  const res = runNpm(["view", `${PACKAGE}@latest`, "version", "devia", "--json"], {
+    encoding: "utf8",
+    timeout,
+    stdio: ["ignore", "pipe", "ignore"],
+    windowsHide: true,
+  });
+  // Offline, no npm, a private registry that 404s: all the same answer here.
+  if (!res || res.error || res.status !== 0 || typeof res.stdout !== "string") return null;
+  return parseViewOutput(res.stdout);
+}
+
+/**
+ * `npm view` changes the shape of its answer depending on how many of the asked-for fields
+ * actually resolve, and a parser that knows only one shape reads the others as failure.
+ *
+ *   both fields present   {"version": "1.0.0", "devia": {...}}
+ *   only version present  "1.0.0"                  <- a bare scalar, not an object
+ *   several matches       [ ... ]                  <- a range or a tag that resolved to more
+ *
+ * The middle one is every release published before this field existed, which is to say the
+ * normal case on the day this ships. Reading it as "the registry could not be reached" is what
+ * the first version did, and the symptom — "registry not reached" — looked exactly like being
+ * offline, which is how it survived a whole round of manual testing.
+ */
+export function parseViewOutput(raw) {
   let json;
   try {
     json = JSON.parse(raw);
@@ -147,9 +186,16 @@ export function lookupLatest({ npm = npmBin(), timeout = TIMEOUT_MS } = {}) {
     return null;
   }
   const doc = Array.isArray(json) ? json[json.length - 1] : json;
-  const latest = typeof doc?.version === "string" ? doc.version : null;
+
+  // Only `version` resolved: npm prints the value on its own, with no key around it.
+  if (typeof doc === "string") {
+    return isVersionLike(doc) ? { latest: doc, release: null } : null;
+  }
+  if (!doc || typeof doc !== "object") return null;
+
+  const latest = typeof doc.version === "string" ? doc.version : null;
   if (!latest) return null;
-  return { latest, release: sanitizeRelease(doc?.devia?.release) };
+  return { latest, release: sanitizeRelease(doc.devia?.release) };
 }
 
 /**

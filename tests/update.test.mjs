@@ -4,6 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import { pathToFileURL } from "node:url";
 import { packageRoot } from "../src/lib/fs.mjs";
 import { detectLanguage, messages, LANGUAGES } from "../src/lib/i18n.mjs";
 import {
@@ -17,6 +18,8 @@ import {
   isVersionLike,
   installCommand,
   npmBin,
+  parseViewOutput,
+  lookupLatest,
   CACHE_FILE,
   MAX_AGE_MS,
 } from "../src/lib/update.mjs";
@@ -78,6 +81,72 @@ test("the install command names an exact version, and only a version-shaped one"
 
 test("npm is named correctly for the platform, so no shell is needed to reach it", () => {
   assert.equal(npmBin(), process.platform === "win32" ? "npm.cmd" : "npm");
+});
+
+/* ------------------------------------------------------------- npm's answer */
+
+/**
+ * The shape of `npm view` depends on how many of the asked-for fields resolve, and every test
+ * above this block seeds a cache instead of parsing one — which is how a dead lookup passed a
+ * full suite. These are the three shapes npm actually produces.
+ */
+test("npm's answer is read in every shape npm produces", () => {
+  // Both fields present.
+  assert.deepEqual(
+    parseViewOutput(JSON.stringify({ version: "1.0.0", devia: { release: RELEASE } })).latest,
+    "1.0.0"
+  );
+
+  // Only `version` resolved — npm drops the key and prints the bare value. This is every release
+  // published before the release field existed, which is to say the normal case on release day.
+  const bare = parseViewOutput('"0.8.0"');
+  assert.equal(bare.latest, "0.8.0", "a bare scalar is an answer, not a failure");
+  assert.equal(bare.release, null);
+
+  // A spec that resolved to several versions: the last is the newest npm listed.
+  assert.equal(parseViewOutput(JSON.stringify([{ version: "0.9.0" }, { version: "1.0.0" }])).latest, "1.0.0");
+
+  // And nothing that is not an answer becomes one.
+  assert.equal(parseViewOutput("not json"), null);
+  assert.equal(parseViewOutput('"not-a-version"'), null);
+  assert.equal(parseViewOutput("null"), null);
+  assert.equal(parseViewOutput(JSON.stringify({ devia: { release: RELEASE } })), null);
+});
+
+test("a real lookup reaches npm, or says nothing — but never prints into the terminal", () => {
+  // The Windows path needs a shell, and a shell with an args array warns on stderr (DEP0190).
+  // A version check does not get to print a warning into somebody's session.
+  const probe = path.join(os.tmpdir(), `devia-probe-${process.pid}.mjs`);
+  // `G:\\...` is not a URL scheme an ESM import accepts; only a file:// URL is.
+  const lib = pathToFileURL(path.join(packageRoot, "src", "lib", "update.mjs")).href;
+  fs.writeFileSync(
+    probe,
+    `import { lookupLatest } from ${JSON.stringify(lib)};\n` +
+      "const r = lookupLatest({ timeout: 20000 });\n" +
+      "process.stdout.write(JSON.stringify(r));\n"
+  );
+  try {
+    let stdout = "";
+    let stderr = "";
+    try {
+      const res = execFileSync(process.execPath, [probe], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+      stdout = res;
+    } catch (e) {
+      stdout = e.stdout || "";
+      stderr = e.stderr || "";
+    }
+    assert.equal(stderr.trim(), "", `the lookup wrote to stderr: ${stderr}`);
+    const answer = JSON.parse(stdout || "null");
+    // Offline is a legitimate outcome; a crash or a half-answer is not.
+    if (answer !== null) {
+      assert.ok(isVersionLike(answer.latest), `not a version: ${answer.latest}`);
+    }
+  } finally {
+    fs.rmSync(probe, { force: true });
+  }
 });
 
 /* ------------------------------------------------------------------ switch */
@@ -295,4 +364,75 @@ test("noticeLines says nothing at all when there is nothing to say", () => {
   );
   assert.equal(lines.length, 3, "three lines under a command, never more");
   assert.match(lines.join("\n"), /Un devia bien plus récent/);
+});
+
+/* -------------------------------------------------------- what the run leaves */
+
+test("a run that answers from the cache does not throw the timestamp away", () => {
+  const dir = scratch();
+  try {
+    devia(["init", "--root", dir, "--no-agents"], dir);
+    const checkedAt = "2026-09-14T08:00:00.000Z";
+    seedCache(dir, { checkedAt, latest: "99.0.0", release: RELEASE, announced: "0.9.0" });
+
+    devia(["update", "--offline", "--root", dir], dir, { env: { DEVIA_LANG: "en" } });
+
+    const after = JSON.parse(fs.readFileSync(path.join(dir, ".devia", CACHE_FILE), "utf8"));
+    // Dropping it made every answer permanently stale, so init and doctor re-looked-up every run.
+    assert.equal(after.checkedAt, checkedAt);
+    assert.equal(after.latest, "99.0.0");
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("announcing a release records that it was announced, and keeps the timestamp", () => {
+  const dir = scratch();
+  try {
+    devia(["init", "--root", dir, "--no-agents"], dir);
+    const pkg = JSON.parse(fs.readFileSync(path.join(packageRoot, "package.json"), "utf8"));
+    const checkedAt = "2026-09-14T08:00:00.000Z";
+    seedCache(dir, { checkedAt, latest: pkg.version, release: null, announced: null });
+
+    devia(["update", "--offline", "--root", dir], dir, { env: { DEVIA_LANG: "en" } });
+    const after = JSON.parse(fs.readFileSync(path.join(dir, ".devia", CACHE_FILE), "utf8"));
+    assert.equal(after.announced, pkg.version);
+    assert.equal(after.checkedAt, checkedAt);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("a build ahead of the registry is told so, not told it is current", () => {
+  const dir = scratch();
+  try {
+    devia(["init", "--root", dir, "--no-agents"], dir);
+    const pkg = JSON.parse(fs.readFileSync(path.join(packageRoot, "package.json"), "utf8"));
+    // The published version is behind the one running: true for every unreleased build.
+    seedCache(dir, {
+      checkedAt: new Date().toISOString(),
+      latest: "0.0.1",
+      release: null,
+      announced: pkg.version,
+    });
+    const res = devia(["update", "--offline", "--root", dir], dir, { env: { DEVIA_LANG: "en" } });
+    assert.match(res.out, /ahead of the newest published version \(0\.0\.1\)/);
+    assert.ok(!res.out.includes("is the newest published version"));
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("nothing is written when there was nothing to write", () => {
+  const dir = scratch();
+  try {
+    devia(["init", "--root", dir, "--no-agents"], dir);
+    const cache = path.join(dir, ".devia", CACHE_FILE);
+    fs.rmSync(cache, { force: true });
+    // Offline with no cache: no answer, so no file claiming one was checked.
+    devia(["update", "--offline", "--root", dir], dir);
+    assert.ok(!fs.existsSync(cache), "an empty cache would read as a check that happened");
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });

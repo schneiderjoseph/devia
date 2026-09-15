@@ -156,8 +156,9 @@ remote, so it is treated as data: control characters stripped, strings and bulle
   ships no HTTP client and no runtime dependency, exactly as `contribute` hands publishing to `gh`
 - The package name is all that is sent. Nothing about the repository leaves it; that promise
   belongs to `contribute` and is untouched
-- One lookup a day, and only inside `update`, `init` and `doctor`. Every other command reads the
-  cached answer and shows three lines, or says nothing. No command waits on a registry
+- One lookup a day, and only inside `update` and `doctor`. Every other command reads the cached
+  answer and shows three lines, or says nothing. No command waits on a registry — `init` is
+  excluded on purpose, because a devia you just installed is the newest one by construction
 - Off with `DEVIA_NO_UPDATE_CHECK=1`, `"update": { "check": false }` in `devia.json`, or CI —
   where it is off by default, because a build that reaches a registry fails when the registry does
 - The notice never appears on `--json`, and never changes a command's exit code

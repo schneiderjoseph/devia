@@ -1,12 +1,11 @@
 import path from "node:path";
 import process from "node:process";
-import { spawnSync } from "node:child_process";
 import { exists, readJSON } from "../lib/fs.mjs";
 import { cliVersion } from "../lib/version.mjs";
 import { detectLanguage, t, LANGUAGES } from "../lib/i18n.mjs";
 import {
   PACKAGE,
-  npmBin,
+  runNpm,
   CHANGELOG_URL,
   checkingAllowed,
   readCache,
@@ -46,6 +45,11 @@ export function noticeLines(report, lang) {
   return out;
 }
 
+/** Write the cache only where there is a memory to hold it, never outside `--root`. */
+function save(deviaDir, value) {
+  if (exists(deviaDir) && value.checkedAt) writeCache(deviaDir, value);
+}
+
 function printNotes(notes, version, lang) {
   const say = t(lang);
   if (!notes) {
@@ -81,10 +85,8 @@ function runInstall(root, version, lang) {
   line(`  ${say.willRun}`);
   line(`    ${color.bold(cmd)}`);
   line("");
-  const res = spawnSync(npmBin(), ["install", "-D", `${PACKAGE}@${target}`], {
-    cwd: root,
-    stdio: "inherit",
-  });
+  // `target` passed `isVersionLike` above, so nothing a shell could read as syntax reaches it.
+  const res = runNpm(["install", "-D", `${PACKAGE}@${target}`], { cwd: root, stdio: "inherit" });
   if (res.status === 0) {
     status("PASS", say.installed(target));
     line("");
@@ -127,26 +129,28 @@ in .devia/devia.json. It is off in CI by default.
   const cached = exists(deviaDir) ? readCache(deviaDir) : null;
   const offline = Boolean(flags.offline) || !allowed;
 
-  let latest = cached?.latest || null;
-  let release = cached?.release || null;
+  // One object, written once at the end. Two separate writes lost `checkedAt` whenever the
+  // second one ran against a cache that did not exist yet — which left every answer permanently
+  // stale, so `init` and `doctor` re-looked-up on every single run.
+  const next = {
+    checkedAt: cached?.checkedAt || null,
+    latest: cached?.latest || null,
+    release: cached?.release || null,
+    announced: cached?.announced || null,
+  };
   let reached = false;
 
   if (!offline) {
     const found = lookupLatest();
     if (found) {
       reached = true;
-      latest = found.latest;
-      release = found.release;
-      if (exists(deviaDir)) {
-        writeCache(deviaDir, {
-          checkedAt: new Date().toISOString(),
-          latest,
-          release,
-          announced: cached?.announced || current,
-        });
-      }
+      next.checkedAt = new Date().toISOString();
+      next.latest = found.latest;
+      next.release = found.release;
     }
   }
+  const latest = next.latest;
+  const release = next.release;
 
   const available = Boolean(latest && isNewer(latest, current));
   const notes = releaseFor(release, lang);
@@ -186,22 +190,26 @@ in .devia/devia.json. It is off in CI by default.
     return 0;
   }
   if (!available) {
-    status("PASS", say.current(current));
+    // Ahead of the registry is not the same as current, and saying "you have the newest
+    // published version" to somebody running an unpublished build is a small lie devia does not
+    // get to tell.
+    const ahead = latest && isNewer(current, latest);
+    status("PASS", ahead ? say.ahead(current, latest) : say.current(current));
     // The version you are on publishes its own summary, so the first run after an upgrade can
     // still answer "what did I just get" — from the package on disk, with nothing fetched.
     // Announced once: a release note that reappears every day is a release note nobody reads.
-    if (cached?.announced !== current) {
+    if (next.announced !== current) {
       printNotes(releaseFor(localRelease(), lang), current, lang);
-      if (exists(deviaDir)) {
-        writeCache(deviaDir, { ...(cached || {}), latest, release, announced: current });
-      }
-    } else if (cached?.checkedAt && !reached) {
-      line(color.dim(`  ${say.checkedAt(cached.checkedAt.slice(0, 10))}`));
+      next.announced = current;
+    } else if (next.checkedAt && !reached) {
+      line(color.dim(`  ${say.checkedAt(next.checkedAt.slice(0, 10))}`));
     }
+    save(deviaDir, next);
     line("");
     return 0;
   }
 
+  save(deviaDir, next);
   status("INFO", say.newer(latest, current));
   printNotes(notes, latest, lang);
 
@@ -219,9 +227,9 @@ in .devia/devia.json. It is off in CI by default.
 /**
  * Refresh the cached answer, for the commands allowed to spend a lookup on it.
  *
- * `init` and `doctor` only: one is a single ceremony, the other is the command whose whole job is
- * to say whether this setup is current. Every other command reads what these left behind, so no
- * hot path ever waits on a registry.
+ * `doctor` only: it is the command whose whole job is to say whether this setup is stale. Every
+ * other command reads what it left behind, so no hot path ever waits on a registry — and `init`
+ * is excluded on purpose, because a devia you just installed is the newest one by construction.
  */
 export function refreshCache(deviaDir, config) {
   if (!exists(deviaDir) || !checkingAllowed(config, process.env)) return null;

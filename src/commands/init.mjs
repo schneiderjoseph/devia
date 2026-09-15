@@ -7,7 +7,6 @@ import { vendorStandard } from "../lib/vendor.mjs";
 import { DEFAULT_BUDGET } from "../lib/context.mjs";
 import { REGISTER_FILE, slotsForProfile, renderSlot } from "../lib/decisions.mjs";
 import { optionalMemoryFor } from "./validate.mjs";
-import { refreshCache } from "./update.mjs";
 import { color, heading, status, line } from "../lib/ui.mjs";
 import { installAdapters, ADAPTERS } from "./skills.mjs";
 
@@ -272,10 +271,6 @@ ${color.bold("devia init")} — create .devia/ in this repository
       res.kept.length ? `kept ${res.kept.join(", ")}` : ""
     );
   }
-
-  // Initialisation is a one-off ceremony, so it can afford the one lookup that lets every later
-  // command answer "is this devia current?" from a cache instead of from the network.
-  refreshCache(deviaDir, readJSON(configPath));
 
   heading("Next");
   line(`  1. Rule on the register: ${color.bold("npx devia decide")} — every slot is pending until you do`);

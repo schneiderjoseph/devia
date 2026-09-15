@@ -159,7 +159,7 @@ against that (`AGT-004`). Remote text is sanitized before it reaches your termin
 | Installs | Never on its own. `--yes` runs the command it just printed, and nothing else |
 | Reaches the network | Through your own `npm` — your registry, your proxy, your credentials |
 | Sends | The package name. Nothing about this repository (that stays `contribute`'s promise) |
-| Costs | One lookup a day, inside `update`, `init` and `doctor`. No other command waits on it |
+| Costs | One lookup a day, inside `update` and `doctor`. No other command waits on it |
 | Off with | `DEVIA_NO_UPDATE_CHECK=1`, `"update": { "check": false }`, or being in CI |
 
 Other commands show a three-line notice from the cached answer, never a fresh lookup — and never

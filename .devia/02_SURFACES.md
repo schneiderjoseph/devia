@@ -43,9 +43,11 @@ package's own `devia.release` field, which is how a version that is not installe
 described without devia inventing anything about it (`AGT-004`). Remote text is sanitized before
 it is printed: control characters stripped, strings and bullet counts capped (`AI-001`).
 
-Only `update`, `init` and `doctor` ever spend a lookup, and only when the cached answer is more
+Only `update` and `doctor` ever spend a lookup, and `doctor` only when the cached answer is more
 than a day old. Every other command reads `.devia/.update-check.json` or says nothing, so no
-command acquired a network call by carrying the notice.
+command acquired a network call by carrying the notice. `init` is excluded deliberately: a devia
+you have just installed is the newest one by construction, and a registry round trip on the
+tool's first impression buys nothing.
 
 `devia contribute submit --yes` is the only command that can publish anything about this
 repository, and it makes that request by handing a prepared file to `gh`. Everything else —
@@ -77,7 +79,7 @@ checkout. A pull request is opened only against a branch the contributor already
 | `init`, `skills install` | `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/devia.mdc`, `.github/copilot-instructions.md`, `.windsurfrules` |
 | `skills install --skill` | `.cursor/skills/devia/SKILL.md`, `.claude/skills/devia/SKILL.md` |
 | `read` | `.devia/reader.html` — a generated snapshot, gitignored, never the source |
-| `init`, `doctor`, `update` | `.devia/.update-check.json` — the cached version answer, gitignored |
+| `doctor`, `update` | `.devia/.update-check.json` — the cached version answer, gitignored |
 | `contribute` | `.devia/contributions/<id>/` — the record, the fixture, and a generated `payload/` |
 | `skills install --global` | Outside the repository, in each agent's own configuration: `~/.claude/skills/devia/`, `~/.codex/skills/devia/`, `~/.cursor/rules/devia.mdc`, `~/.gemini/GEMINI.md` when empty. Copilot and Windsurf report `SKIP` (`12_DEBT.md` D8) |
 

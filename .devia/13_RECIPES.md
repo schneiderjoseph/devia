@@ -49,6 +49,19 @@
 5. CHANGELOG.md: does an existing adopter need to act, or is devia sync enough?
 ```
 
+## Change something that talks to the outside world
+
+```text
+1. Reproduce the underlying call by hand first — `npm view ... --json`, `gh ...` — and look at
+   the bytes it actually returns, not at what the docs imply
+2. Every shape it can return is a case: npm alone returns an object, a bare scalar and an array
+   depending on how many fields resolve
+3. Windows is a different call: npm is npm.cmd, and Node will not spawn a .cmd without a shell
+   (CVE-2024-27980). A shell plus an args array warns on stderr (DEP0190) — pass one string
+4. One test drives the real thing and tolerates it being unavailable; the rest may seed a fixture
+5. A failure message is not a diagnosis. "Could not reach the registry" hid two bugs
+```
+
 ## Say something to a human rather than to an agent
 
 ```text
