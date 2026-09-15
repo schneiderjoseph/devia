@@ -17,6 +17,7 @@ build/
 
 # Généré par `devia read` — un instantané de la mémoire, pas la mémoire
 .devia/reader.html
+.devia/.update-check.json
 
 # Généré par `devia contribute submit` — reconstruit depuis le record et le fixture,
 # qui eux sont des preuves et restent versionnés

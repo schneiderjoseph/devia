@@ -7,6 +7,7 @@ enforce them.
 |---|---|---|
 | [`rule.schema.json`](rule.schema.json) | A rule file's frontmatter | `scripts/validate-rules.mjs`, `src/lib/rules.mjs` |
 | [`project-config.schema.json`](project-config.schema.json) | `.devia/devia.json` | `devia validate` (required keys today — see the debt register) |
+| [`decisions.schema.json`](decisions.schema.json) | `.devia/decisions.yaml` | `devia validate`, `devia check` (`slotIssues()` in `src/lib/decisions.mjs`) |
 | [`contribution.schema.json`](contribution.schema.json) | `.devia/contributions/<id>/record.json` | `devia contribute` (`missing()` and `eligibility()` in `src/lib/contribution.mjs`) |
 | [`waiver.schema.json`](waiver.schema.json) | A time-boxed exception | `devia check` (expiry) |
 | [`checklist.schema.json`](checklist.schema.json) | A machine-readable checklist | — |

@@ -2,7 +2,7 @@ import process from "node:process";
 import path from "node:path";
 import { packageRoot, findProjectRoot } from "./lib/fs.mjs";
 import { cliVersion, standardVersion } from "./lib/version.mjs";
-import { color } from "./lib/ui.mjs";
+import { color, line } from "./lib/ui.mjs";
 
 const COMMANDS = {
   init: () => import("./commands/init.mjs"),
@@ -15,6 +15,8 @@ const COMMANDS = {
   contribute: () => import("./commands/contribute.mjs"),
   sync: () => import("./commands/sync.mjs"),
   skills: () => import("./commands/skills.mjs"),
+  decide: () => import("./commands/decide.mjs"),
+  update: () => import("./commands/update.mjs"),
   gap: () => import("./commands/registry.mjs"),
   debt: () => import("./commands/registry.mjs"),
 };
@@ -31,9 +33,11 @@ ${color.bold("devia")} — one standard, one memory
   ${color.bold("devia context")}     the smallest sufficient context for one task
   ${color.bold("devia sync")}        pin the standard under .devia/standard/, or refresh it
   ${color.bold("devia skills")}      install the agent adapters (install --agent all)
+  ${color.bold("devia decide")}      the decision register — what is decided, pending, delegated
   ${color.bold("devia gap")}         add or close a line in 11_GAPS.md
   ${color.bold("devia debt")}        add or close a line in 12_DEBT.md
   ${color.bold("devia contribute")}  turn a devia problem you hit here into an issue or a PR
+  ${color.bold("devia update")}      is there a newer devia, and what does it bring? (you decide)
 
 Common flags
 
@@ -107,7 +111,36 @@ export async function run(argv) {
     return 2;
   }
 
+  const ctx = context(args);
   const mod = await load();
-  const code = await mod.default(context(args), command);
+  const code = await mod.default(ctx, command);
+  await announceUpdate(ctx, command);
   return typeof code === "number" ? code : 0;
+}
+
+/**
+ * One line, after the command, when a newer devia is already known to exist.
+ *
+ * Read from the cache only — no command acquires a network call by carrying this notice, and
+ * whether devia may look at all is decided in `src/lib/update.mjs`. Suppressed for machine
+ * output, because `--json` is a contract and prose on stdout breaks whatever is parsing it; and
+ * for `update` itself, which has just said the same thing at length.
+ */
+async function announceUpdate(ctx, command) {
+  if (ctx.json || command === "update" || !ctx.flags || ctx.flags.help) return;
+  try {
+    const { status: updateStatus } = await import("./lib/update.mjs");
+    const { noticeLines } = await import("./commands/update.mjs");
+    const { readJSON } = await import("./lib/fs.mjs");
+    const config = readJSON(path.join(ctx.deviaDir, "devia.json"));
+    const report = updateStatus(ctx.deviaDir, { config });
+    if (!report.allowed) return;
+    const lines = noticeLines(report, undefined);
+    if (!lines.length) return;
+    line("");
+    for (const l of lines) line(`  ${l}`);
+    line("");
+  } catch {
+    // A notice is never worth failing a command over.
+  }
 }

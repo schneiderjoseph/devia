@@ -12,12 +12,16 @@ This repository runs on devia. `.devia/` is the project memory and it is not opt
 2. Never invent an endpoint, field, config key or business rule. Unknown goes to
    `.devia/11_GAPS.md` or to the human — never into the code as a quiet default (AGT-004,
    MEM-001).
-3. Decided but not built goes in `.devia/12_DEBT.md`, even when you are not fixing it (MEM-002).
+3. A `pending` slot in `.devia/decisions.yaml` is not permission to choose one — no brand,
+   palette, framework major or indexing policy decided as a side effect of implementation. You
+   decide only where it says `delegated`, inside `bounded_by`. A missing asset stays missing
+   (DEC-001, DEC-002, DEC-005).
+4. Decided but not built goes in `.devia/12_DEBT.md`, even when you are not fixing it (MEM-002).
    Never delete a registry line you did not discharge (MEM-011).
-4. Smallest change that satisfies the request (AGT-003). No opportunistic refactors.
-5. Never disable a test, bypass a hook, or weaken a rule or threshold to go green (TST-003,
+5. Smallest change that satisfies the request (AGT-003). No opportunistic refactors.
+6. Never disable a test, bypass a hook, or weaken a rule or threshold to go green (TST-003,
    OPS-003, AGT-011).
-6. Server-side authorization, validated input, no secrets, versioned migrations (SEC-001,
+7. Server-side authorization, validated input, no secrets, versioned migrations (SEC-001,
    SEC-002, SEC-003, DB-001).
 7. Any UI change satisfies the design MUSTs: accessible name, keyboard path, visible focus,
    persistent labels, complete states, never colour alone (A11Y-001, A11Y-004, A11Y-006, UX-007,

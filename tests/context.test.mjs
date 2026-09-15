@@ -23,7 +23,7 @@ const deviaDir = path.join(root, ".devia");
 const { FORCE_COLOR, ...cleanEnv } = process.env;
 
 function devia(args, cwd, { allowFailure = false } = {}) {
-  const options = { cwd, encoding: "utf8", env: { ...cleanEnv, NO_COLOR: "1" } };
+  const options = { cwd, encoding: "utf8", env: { ...cleanEnv, NO_COLOR: "1", DEVIA_NO_UPDATE_CHECK: "1" } };
   try {
     return { code: 0, out: execFileSync(process.execPath, [bin, ...args], options) };
   } catch (e) {
@@ -390,7 +390,7 @@ test("the benchmark passes: the saving never costs a blocking rule", () => {
   const out = execFileSync(
     process.execPath,
     [path.join(packageRoot, "scripts", "benchmark-context.mjs"), "--json"],
-    { cwd: root, encoding: "utf8", env: { ...cleanEnv, NO_COLOR: "1" } }
+    { cwd: root, encoding: "utf8", env: { ...cleanEnv, NO_COLOR: "1", DEVIA_NO_UPDATE_CHECK: "1" } }
   );
   const report = JSON.parse(out);
   assert.equal(report.ok, true);

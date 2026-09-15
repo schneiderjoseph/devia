@@ -3,6 +3,13 @@ import { exists, read, readJSON, walk } from "../lib/fs.mjs";
 import { trackedFiles } from "../lib/git.mjs";
 import { SECRET_PATTERNS } from "../lib/sanitize.mjs";
 import { GATES } from "../lib/gates.mjs";
+import {
+  loadRegister,
+  registerIssues,
+  blockingPending,
+  missingAssets,
+  stackDrift,
+} from "../lib/decisions.mjs";
 import { buildCorpus, classify, select, budgetFor } from "../lib/context.mjs";
 import { color, heading, status, line } from "../lib/ui.mjs";
 
@@ -101,6 +108,9 @@ function makeChecks(root, ctx) {
   }
   const noManifest = `no package.json anywhere in the repository`;
 
+  const register = loadRegister(path.join(root, ".devia"));
+  const noRegister = "no decision register — `devia init` adds one without touching your files";
+
   const hasDep = (...names) => names.some((n) => n in deps);
   const grepFiles = (re, limit = 40) => {
     const hits = [];
@@ -152,6 +162,71 @@ function makeChecks(root, ctx) {
       return expired.length
         ? { kind: "FAIL", detail: `${expired.length} expired or undated` }
         : { kind: "PASS", detail: `${waivers.length} active` };
+    },
+    /**
+     * The register's gates, and the one line that decides their shape: a pending decision is a
+     * normal state of a live project, so only the project's own `blocks:` declaration turns one
+     * into a blocker. A gate that failed on every open question would be switched off in a week,
+     * and devia would have traded a real stop for a permanent warning nobody reads.
+     */
+    "DEC-BLOCKING": () => {
+      if (!register.exists) return { kind: "SKIP", detail: noRegister };
+      const blocked = blockingPending(root, register.slots);
+      if (!blocked.length) {
+        const declared = register.slots.filter((s) => s.blocks.length).length;
+        return { kind: "PASS", detail: declared ? `${declared} slot(s) declare what they block` : "nothing declared as blocking" };
+      }
+      return {
+        kind: "FAIL",
+        detail: blocked
+          .map(({ slot, built }) => `${slot.key} is pending and ${built.join(", ")} exists`)
+          .join("; "),
+      };
+    },
+    "DEC-REGISTER": () => {
+      if (!register.exists) return { kind: "SKIP", detail: noRegister };
+      const issues = registerIssues(register);
+      if (issues.length) {
+        return { kind: "FAIL", detail: issues.slice(0, 3).join("; ") + (issues.length > 3 ? ` (+${issues.length - 3})` : "") };
+      }
+      return { kind: "PASS", detail: `${register.slots.length} slots` };
+    },
+    "DEC-ASSETS": () => {
+      if (!register.exists) return { kind: "SKIP", detail: noRegister };
+      const withPath = register.slots.filter((s) => s.path);
+      if (!withPath.length) return { kind: "SKIP", detail: "no decision delivers a file" };
+      const missing = missingAssets(root, register.slots);
+      return missing.length
+        ? { kind: "FAIL", detail: missing.map((s) => `${s.key} → ${s.path}`).join(", ") }
+        : { kind: "PASS", detail: `${withPath.length} asset path(s) present` };
+    },
+    /**
+     * Declared version against the manifest — never against a registry. devia has no network,
+     * and "is 16 still the newest" is `npm outdated`'s question. "Did we decide 16 and ship 15"
+     * is devia's, and it is the one that is actually a defect (`DEC-003`).
+     */
+    "DEC-STACK": () => {
+      if (!register.exists) return { kind: "SKIP", detail: noRegister };
+      const pinned = register.slots.filter((s) => s.status === "decided" && s.package);
+      if (!pinned.length) return { kind: "SKIP", detail: "no decision names a package" };
+      const drift = stackDrift(register.slots, deps);
+      if (!drift.length) return { kind: "PASS", detail: `${pinned.length} pinned, manifest agrees` };
+      const real = drift.filter((d) => d.kind === "drift");
+      const detail = drift
+        .map((d) =>
+          d.kind === "absent"
+            ? `${d.slot.key} pins ${d.slot.package}, no manifest declares it`
+            : `${d.slot.key} decided ${d.slot.value}, manifest says ${d.installed}`
+        )
+        .join("; ");
+      return { kind: real.length ? "FAIL" : "WARN", detail };
+    },
+    "DEC-PENDING": () => {
+      if (!register.exists) return { kind: "SKIP", detail: noRegister };
+      const pending = register.slots.filter((s) => s.status === "pending");
+      return pending.length
+        ? { kind: "WARN", detail: `${pending.length} open: ${pending.slice(0, 4).map((s) => s.key).join(", ")}${pending.length > 4 ? "…" : ""}` }
+        : { kind: "PASS", detail: "every slot has been ruled on" };
     },
     "CI-PRESENT": () => {
       const wf = path.join(root, ".github", "workflows");

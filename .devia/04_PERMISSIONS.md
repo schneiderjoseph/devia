@@ -9,7 +9,8 @@
 |---|---|
 | Create and update files under `<root>/.devia/` | Write outside `--root`, except `skills install --global` |
 | Write the agent adapters at the repository root | Overwrite a file the user has edited, without `--force` |
-| Read files in the target repository to produce evidence | Send anything over the network, except `contribute submit --yes` |
+| Read files in the target repository to produce evidence | Send anything **about this repository** over the network, except `contribute submit --yes` |
+| Ask npm for the newest published devia version | Install, upgrade or modify a dependency without `update --yes` |
 | Replace `.devia/standard/` wholesale on `sync` | Touch the project's own memory content on `sync` |
 | Copy a named file into a contribution fixture, sanitized | Copy a file into a fixture that the user did not name |
 
@@ -28,6 +29,22 @@ A file the agent owns and devia adds to (`~/.claude/skills/`, `~/.codex/skills/`
 content stays. `--force` overrides both, and says which paths it took.
 
 ## What may leave the machine
+
+Two features reach the network, and they are not the same kind of thing. The promise that matters
+is about **content**: nothing about a repository leaves it except through `contribute`.
+
+| | `contribute submit --yes` | `update` |
+|---|---|---|
+| Sends | A fixture the contributor built and read | The package name |
+| About this repository | Only what was explicitly included | Nothing at all |
+| Through | `gh`, authenticated as the contributor | `npm`, with the user's own registry and proxy |
+| Runs when | `--yes`, per submission | `devia update`, and once a day inside `doctor` |
+| Can change the project | Opens an issue or a PR | Installs **only** with `update --yes` |
+| Off with | `"contribution": { "enabled": false }` | `DEVIA_NO_UPDATE_CHECK=1`, `"update": { "check": false }`, or CI |
+
+A version lookup is not a data transfer, and calling it one would flatten a distinction adopters
+depend on. It is still listed, still switchable, and still off in CI by default — a build that
+reaches a registry because a linter ran is a build that fails when the registry does.
 
 `devia contribute` is the only feature that can publish anything, and it is built so that the
 answer to "what did it send" is always a file the user read first.

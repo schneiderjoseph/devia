@@ -1,6 +1,6 @@
 {
   "name": "@schneiderjoseph/devia",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "One standard, one memory: engineering and design rules plus living project memory for AI coding agents",
   "type": "module",
   "license": "MIT",
@@ -19,6 +19,8 @@
     "agents",
     "project-memory",
     "code-quality",
+    "decision-records",
+    "seo",
     "accessibility",
     "security",
     "asvs",
@@ -71,5 +73,99 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "devia": {
+    "release": {
+      "en": {
+        "headline": "An undefined decision is not an implicit permission.",
+        "added": [
+          "devia decide: a register of what the project must rule on, seeded from its profile",
+          "Pending decisions travel with the task, in the blocking tier of devia context",
+          "14 rules: DEC-001..007 on deciding, DISC-001..007 on search and AI discovery"
+        ],
+        "fixed": [
+          "A memory created by an older devia is reported, never failed",
+          "devia read now shows the register it was omitting"
+        ],
+        "changed": [
+          "Required memory files depend on the profile: 08_DISCOVERY.md for web-app and docs"
+        ]
+      },
+      "fr": {
+        "headline": "Une décision indéfinie n'est pas une permission implicite.",
+        "added": [
+          "devia decide : un registre de ce que le projet doit trancher, semé depuis son profil",
+          "Les décisions en attente accompagnent la tâche, dans le tier bloquant de devia context",
+          "14 règles : DEC-001..007 sur la décision, DISC-001..007 sur la découverte et les IA"
+        ],
+        "fixed": [
+          "Une mémoire créée par un devia plus ancien est signalée, jamais mise en échec",
+          "devia read affiche désormais le registre qu'il omettait"
+        ],
+        "changed": [
+          "Les fichiers de mémoire requis dépendent du profil : 08_DISCOVERY.md pour web-app et docs"
+        ]
+      },
+      "es": {
+        "headline": "Una decisión indefinida no es un permiso implícito.",
+        "added": [
+          "devia decide: un registro de lo que el proyecto debe decidir, sembrado desde su perfil",
+          "Las decisiones pendientes acompañan la tarea, en el nivel bloqueante de devia context",
+          "14 reglas: DEC-001..007 sobre decidir, DISC-001..007 sobre búsqueda y descubrimiento por IA"
+        ],
+        "fixed": [
+          "Una memoria creada por un devia anterior se informa, nunca falla",
+          "devia read ahora muestra el registro que omitía"
+        ],
+        "changed": [
+          "Los archivos de memoria requeridos dependen del perfil: 08_DISCOVERY.md para web-app y docs"
+        ]
+      },
+      "de": {
+        "headline": "Eine offene Entscheidung ist keine stillschweigende Erlaubnis.",
+        "added": [
+          "devia decide: ein Register dessen, was das Projekt entscheiden muss, aus seinem Profil erzeugt",
+          "Offene Entscheidungen begleiten die Aufgabe, in der blockierenden Stufe von devia context",
+          "14 Regeln: DEC-001..007 zum Entscheiden, DISC-001..007 zu Suche und KI-Auffindbarkeit"
+        ],
+        "fixed": [
+          "Ein von einer älteren devia erstelltes Gedächtnis wird gemeldet, nie als Fehler gewertet",
+          "devia read zeigt jetzt das Register, das es ausgelassen hat"
+        ],
+        "changed": [
+          "Erforderliche Gedächtnisdateien hängen vom Profil ab: 08_DISCOVERY.md für web-app und docs"
+        ]
+      },
+      "it": {
+        "headline": "Una decisione non presa non è un permesso implicito.",
+        "added": [
+          "devia decide: un registro di ciò che il progetto deve decidere, generato dal suo profilo",
+          "Le decisioni in sospeso accompagnano il compito, nel livello bloccante di devia context",
+          "14 regole: DEC-001..007 sul decidere, DISC-001..007 su ricerca e scoperta da parte delle IA"
+        ],
+        "fixed": [
+          "Una memoria creata da una devia precedente viene segnalata, mai fatta fallire",
+          "devia read ora mostra il registro che ometteva"
+        ],
+        "changed": [
+          "I file di memoria richiesti dipendono dal profilo: 08_DISCOVERY.md per web-app e docs"
+        ]
+      },
+      "pt": {
+        "headline": "Uma decisão indefinida não é uma permissão implícita.",
+        "added": [
+          "devia decide: um registro do que o projeto precisa decidir, semeado a partir do seu perfil",
+          "Decisões pendentes acompanham a tarefa, no nível bloqueante do devia context",
+          "14 regras: DEC-001..007 sobre decidir, DISC-001..007 sobre busca e descoberta por IA"
+        ],
+        "fixed": [
+          "Uma memória criada por um devia anterior é reportada, nunca reprovada",
+          "devia read agora mostra o registro que omitia"
+        ],
+        "changed": [
+          "Os arquivos de memória exigidos dependem do perfil: 08_DISCOVERY.md para web-app e docs"
+        ]
+      }
+    }
   }
 }

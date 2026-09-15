@@ -80,6 +80,20 @@ Automated check or recorded manual review
 | [DB-006](../rules/database/DB-006.md) | database | SHOULD | P2 | devia | — | manual |
 | [DB-007](../rules/database/DB-007.md) | database | MUST | P1 | OWASP ASVS 5.0 V7 | — | manual |
 | [DB-008](../rules/database/DB-008.md) | database | MUST NOT | P0 | OWASP ASVS 5.0 V5 | — | automated + manual |
+| [DEC-001](../rules/decision/DEC-001.md) | decision | MUST NOT | P0 | devia | — | automated + manual |
+| [DEC-002](../rules/decision/DEC-002.md) | decision | MUST | P1 | devia | — | automated |
+| [DEC-003](../rules/decision/DEC-003.md) | decision | MUST | P1 | devia | — | automated + manual |
+| [DEC-004](../rules/decision/DEC-004.md) | decision | MUST NOT | P1 | devia | — | manual |
+| [DEC-005](../rules/decision/DEC-005.md) | decision | MUST NOT | P1 | devia | — | automated + manual |
+| [DEC-006](../rules/decision/DEC-006.md) | decision | SHOULD | P2 | devia | — | manual |
+| [DEC-007](../rules/decision/DEC-007.md) | decision | MUST | P1 | devia | — | automated + manual |
+| [DISC-001](../rules/discovery/DISC-001.md) | discovery | MUST | P1 | devia | — | automated + manual |
+| [DISC-002](../rules/discovery/DISC-002.md) | discovery | MUST | P1 | devia | — | automated + manual |
+| [DISC-003](../rules/discovery/DISC-003.md) | discovery | MUST | P1 | devia | — | automated + manual |
+| [DISC-004](../rules/discovery/DISC-004.md) | discovery | MUST NOT | P0 | devia | — | automated + manual |
+| [DISC-005](../rules/discovery/DISC-005.md) | discovery | MUST | P1 | devia | — | automated + manual |
+| [DISC-006](../rules/discovery/DISC-006.md) | discovery | MUST NOT | P2 | devia | — | manual |
+| [DISC-007](../rules/discovery/DISC-007.md) | discovery | SHOULD | P2 | devia | — | automated + manual |
 | [DS-001](../rules/design-system/DS-001.md) | design-system | MUST | P1 | DTCG | — | automated + manual |
 | [DS-002](../rules/design-system/DS-002.md) | design-system | SHOULD | P2 | Carbon, DTCG | — | manual |
 | [DS-003](../rules/design-system/DS-003.md) | design-system | MUST | P1 | SemVer | — | manual |

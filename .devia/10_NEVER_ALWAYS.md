@@ -4,6 +4,25 @@
 
 ## Never
 
+- **Never accept a failure message as a diagnosis.** `devia update` reported "could not reach
+  the registry" and the registry was fine: `npm view` returns a bare scalar when only one of the
+  asked-for fields resolves, and `npm.cmd` cannot be spawned without a shell since the fix for
+  CVE-2024-27980. Two bugs wearing the same sentence, and that sentence looked like somebody
+  else's problem. Reproduce the underlying call by hand before believing what the wrapper says.
+- **Never test a code path only through a seeded fixture.** Every update test passed against a
+  hand-written cache while the lookup that fills it was dead. If a function talks to the outside
+  world, one test drives the real thing and tolerates it being unavailable — the rest may seed.
+- **Never let a new check fail a memory an older devia created.** A gate added in version N
+  reports `SKIP` with the reason when the file it reads does not exist, and `validate` warns
+  rather than failing. An upgrade that fails every existing adopter's build is a bill, not an
+  upgrade path.
+- **Never let a new gate block on a state that is normal.** A pending decision is the ordinary
+  condition of a live project; only the project's own `blocks:` declaration turns one into a P0.
+  A gate that fires on everything is a gate somebody switches off, and it takes the gates that
+  mattered with it.
+- **Never `padEnd` a string that already carries colour.** An escape sequence has width in
+  `padEnd` and none on screen, so the column is right with `NO_COLOR` and wrong in a terminal.
+  Pad the plain word, then colour it.
 - **Never reuse a rule id**, even for a rule that was removed the same day. Old reports and old
   `.devia` copies cite ids; a reused id makes a citation silently resolve to something else.
   Supersede instead.

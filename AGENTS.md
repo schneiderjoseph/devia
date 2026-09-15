@@ -32,6 +32,8 @@ inventing.
 ```text
 Read the contract (this file + .devia/AGENTS.md)
     ↓
+Read what has NOT been decided (.devia/decisions.yaml — `devia decide pending`)
+    ↓
 Read the relevant memory + domain policy + matching checklist
     ↓
 Understand the existing patterns in the target repo before adding new ones
@@ -52,18 +54,22 @@ Report what changed, and report what was NOT verified
 2. **Never invent.** No APIs, business rules, DB fields, config keys, or endpoints that are not
    in the spec, the ADR, or the memory. If it is not decided, it goes in `.devia/11_GAPS.md` —
    it does not go in the code as a silent truth.
-3. **Smallest change that satisfies the request.** No opportunistic refactors riding along.
-4. **Complexity must be earned.** No Redis, Kubernetes, microservices, queues, GraphQL or extra
+3. **An undefined decision is not an implicit permission.** A `pending` slot in
+   `.devia/decisions.yaml` — a brand, a palette, a framework version, an indexing policy — is a
+   question with an owner, not a blank the implementation may fill. You decide only where the
+   register says `delegated`, and only inside its `bounded_by` (`DEC-001`, `DEC-002`).
+4. **Smallest change that satisfies the request.** No opportunistic refactors riding along.
+5. **Complexity must be earned.** No Redis, Kubernetes, microservices, queues, GraphQL or extra
    databases "because serious apps have them" (`PRINCIPLES.md`).
-5. **Every new dependency is a liability.** Justify it before adding it.
-6. **Code and memory ship together.** If the change makes a `.devia` file false, the same change
+6. **Every new dependency is a liability.** Justify it before adding it.
+7. **Code and memory ship together.** If the change makes a `.devia` file false, the same change
    fixes it (`impact-map.yaml` says which).
-7. **Registries are not optional.** Decided-but-not-built goes in `.devia/12_DEBT.md`; the line is
+8. **Registries are not optional.** Decided-but-not-built goes in `.devia/12_DEBT.md`; the line is
    removed only by the change that discharges it, and reduced — never deleted — when partly done.
-8. **Cite rule IDs** in compliance summaries (`UX-007`, `SEC-002`, `MEM-003`).
-9. **Report what you did not verify.** Silence about unverified work is a false claim of
+9. **Cite rule IDs** in compliance summaries (`UX-007`, `SEC-002`, `MEM-003`).
+10. **Report what you did not verify.** Silence about unverified work is a false claim of
    completeness.
-10. **Never claim "done" or "production ready"** while a P0 gate is failing or unrun.
+11. **Never claim "done" or "production ready"** while a P0 gate is failing or unrun.
 
 ## Hard stops (refuse or escalate — do not "work around")
 
@@ -102,7 +108,9 @@ for the human. Passing unit tests is not Gold maturity — see [`MATURITY.md`](M
 |---|---|
 | What this project is, its stack, its history | `.devia/00_OVERVIEW.md`, `.devia/01_ARCHITECTURE.md` |
 | Things this project has already banned | `.devia/10_NEVER_ALWAYS.md` |
+| What this project has ruled on, and what it has not | `.devia/decisions.yaml`, `devia decide` |
 | Something undecided / not built | `.devia/11_GAPS.md`, `.devia/12_DEBT.md` |
+| How this project is found by search or by machines | `.devia/08_DISCOVERY.md`, `rules/discovery/` |
 | How to do a routine task here | `.devia/13_RECIPES.md` |
 | How the standard is enforced | `LEVELS.md`, `MATURITY.md`, `PRINCIPLES.md` |
 | Agent behaviour and memory discipline | `rules/agent/`, `rules/memory/`, `MEMORY.md` |

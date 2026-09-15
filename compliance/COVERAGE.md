@@ -4,16 +4,16 @@
 
 | Metric | Value |
 |---|---|
-| Rules total | 141 |
-| Active | 141 |
-| MUST | 104 |
-| MUST NOT | 12 |
-| SHOULD | 25 |
-| P0 | 45 |
-| P1 | 71 |
-| P2 | 25 |
-| Automatable | 56 |
-| Domains | 23 |
+| Rules total | 155 |
+| Active | 155 |
+| MUST | 111 |
+| MUST NOT | 17 |
+| SHOULD | 27 |
+| P0 | 47 |
+| P1 | 80 |
+| P2 | 28 |
+| Automatable | 67 |
+| Domains | 25 |
 
 ## By domain
 
@@ -28,8 +28,10 @@
 | content | 1 | 0 |
 | data-display | 4 | 0 |
 | database | 8 | 5 |
+| decision | 7 | 1 |
 | design-system | 3 | 0 |
 | devops | 7 | 4 |
+| discovery | 7 | 1 |
 | interaction | 2 | 0 |
 | localization | 3 | 0 |
 | memory | 11 | 3 |

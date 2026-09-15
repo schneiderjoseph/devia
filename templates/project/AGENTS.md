@@ -17,6 +17,11 @@ Then work. Then update this memory in the same change.
 
 - Never invent an endpoint, field, config key or business rule. Unknown means **ask**, or record
   it in [`11_GAPS.md`](11_GAPS.md) — not a quiet default (`AGT-004`, `MEM-001`)
+- A `pending` line in [`decisions.yaml`](decisions.yaml) is **not permission to choose**. No
+  brand, no palette, no framework version, no robots policy decided as a side effect of
+  implementation. Build around it, or say what it blocks (`DEC-001`)
+- You decide only where the register says `delegated`, and only inside `bounded_by` (`DEC-002`)
+- A missing asset stays missing. Never generate a stand-in for one (`DEC-005`)
 - Decided but not built goes in [`12_DEBT.md`](12_DEBT.md), even when you are not fixing it
   (`MEM-002`)
 - Smallest change that satisfies the request; no opportunistic refactors (`AGT-003`)
@@ -30,6 +35,7 @@ Then work. Then update this memory in the same change.
 
 ```bash
 npx devia context "<task>"   # the rules that apply here, not all of them
+npx devia decide pending     # what nobody has ruled on — read before you assume
 npx devia validate           # memory integrity
 npx devia check              # readiness gates (P0 blocks)
 ```
@@ -43,6 +49,7 @@ TODO(devia): add this project's own commands — install, dev, test, lint, migra
 - Memory read: ...
 - Rules applied (IDs): ...
 - P0 status: ...
+- Decisions relied on: ... (and any `pending` slot this change touched)
 - Checks run / NOT run: ...
 - .devia updated: ...
 - Registries: gaps / debt touched

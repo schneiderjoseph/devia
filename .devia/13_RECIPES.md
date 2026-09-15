@@ -39,12 +39,50 @@
 ## Change what `devia init` writes
 
 ```text
-1. Edit templates/project/ (or templates/agents/)
+1. Edit templates/project/ (every profile) or templates/optional/ (some profiles)
 2. Placeholders: {{PROJECT_NAME}}, {{DEVIA_VERSION}}, {{DATE}}; unfilled content is marked with
    the token that `validate` counts (see REQUIRED_MEMORY and PLACEHOLDER there)
-3. If a new memory file is required, add it to REQUIRED_MEMORY in src/commands/validate.mjs
+3. A file every project owes goes in REQUIRED_MEMORY; one only some profiles owe goes in
+   OPTIONAL_MEMORY — both in src/commands/validate.mjs, which is what validate, doctor and the
+   impact-map check all resolve the required set from
 4. npm test   # the materialised-link test covers template links
 5. CHANGELOG.md: does an existing adopter need to act, or is devia sync enough?
+```
+
+## Change something that talks to the outside world
+
+```text
+1. Reproduce the underlying call by hand first — `npm view ... --json`, `gh ...` — and look at
+   the bytes it actually returns, not at what the docs imply
+2. Every shape it can return is a case: npm alone returns an object, a bare scalar and an array
+   depending on how many fields resolve
+3. Windows is a different call: npm is npm.cmd, and Node will not spawn a .cmd without a shell
+   (CVE-2024-27980). A shell plus an args array warns on stderr (DEP0190) — pass one string
+4. One test drives the real thing and tolerates it being unavailable; the rest may seed a fixture
+5. A failure message is not a diagnosis. "Could not reach the registry" hid two bugs
+```
+
+## Say something to a human rather than to an agent
+
+```text
+1. The standard, the rules and the memory stay in English — they are read by agents and cited by
+   id, and a translated obligation is a second wording of the same rule
+2. A line addressed to the person at the terminal goes through src/lib/i18n.mjs, in the six
+   languages devia actually writes. A seventh ships when the wording can be written properly,
+   never machine-translated
+3. Add the key to every language block; tests/update.test.mjs fails a language missing a key
+4. Update .devia/02_SURFACES.md if the command is new
+```
+
+## Add a decision slot to a profile
+
+```text
+1. PROFILE_SLOTS in src/lib/decisions.mjs — key is `group.name`, and the group is what routes
+2. DECISION_DOMAINS in src/lib/context.mjs if the group is new, or the slot reaches no task
+3. A slot earns its place by being a decision an agent has been seen to make on its own. A
+   register nobody finishes reading protects nothing
+4. npm test   # tests/decisions.test.mjs asserts what each profile is and is not asked
+5. Existing adopters do not get it until they re-run `devia init` — say so in CHANGELOG.md
 ```
 
 ## Change how context is routed or budgeted

@@ -17,22 +17,79 @@ code        the only thing that is true by construction
 2. How is it organised, and what boundaries must not be crossed?
 3. What surfaces exist (pages, endpoints, jobs), and where do they live?
 4. What has this project already banned, and why?
-5. What is decided but not built?
-6. What is not decided at all?
-7. How do I do the routine task I am about to do?
+5. What has been **ruled on** — and by whom?
+6. What is decided but not built?
+7. What is not decided at all?
+8. How do I do the routine task I am about to do?
 
 A memory file that cannot answer its question in a scan is too long or too vague.
 
-## The two registries
+## An undefined decision is not an implicit permission
+
+This is the whole of it, and everything below is machinery for it.
+
+An agent that meets a hole in the project does the reasonable thing, which is the wrong thing:
+
+```text
+information missing
+       ↓
+reasonable assumption
+       ↓
+implementation
+       ↓
+the project now has a policy nobody chose
+```
+
+The purple-gradient landing page is the visible case. The invisible ones are worse: a framework
+major picked by whatever the scaffolder emitted, an indexing policy inherited from a template, a
+rounding rule that became load-bearing in six months. In every one of them the failure is the
+same — **a missing answer was read as a free choice.**
+
+So the memory names a fourth state, and the machinery refuses to collapse it into the others:
+
+```text
+information missing
+       ↓
+PENDING — recorded, owned, visible in every context the agent receives
+       ↓
+human decision  OR  explicit, bounded delegation
+       ↓
+implementation
+```
+
+## The three registries
 
 They are different things and must never be merged.
 
 | Registry | Means | Failure it prevents |
 |---|---|---|
-| `11_GAPS.md` | **Undecided.** Nobody has ruled on it. | The agent quietly picks an answer and encodes it as truth |
+| `decisions.yaml` | **The questions this kind of project always has.** Enumerated before the work starts. | The agent answers one of them on the project's behalf, silently |
+| `11_GAPS.md` | **Undecided.** A question somebody hit while working; nobody has ruled on it. | The agent quietly picks an answer and encodes it as truth |
 | `12_DEBT.md` | **Decided, not built.** The rule exists; the code does not honour it yet. | "We know about it" — knowledge that leaves no trace and never gets scheduled |
 
-Discipline for both:
+The register and the gap registry both mean *undecided*; what separates them is who found the
+question. The register holds the **known** unknowns — a brand, a stack version, an indexing
+policy — which a project of this kind owes an answer to whether or not anyone has thought about
+them yet. The gap registry holds the ones nobody saw coming. Seeding the first from the profile
+is what makes an absence visible **before** an agent stands in front of it.
+
+### Four states, not three
+
+| Status | Means | What an agent may do |
+|---|---|---|
+| `decided` | A human ruled. | Implement it. Never reverse it quietly. |
+| `pending` | Nobody has ruled. | Build around it. Never answer it. |
+| `delegated` | The agent may choose, inside `bounded_by`. | Choose — inside those bounds and nowhere else. |
+| `not_required` | Deliberately not needed here. | Do not add one. |
+
+`not_required` earns its place by being a decision. "This product ships no photography" is a
+ruling, and folding it into `pending` would leave a permanent false alarm on a project that has
+already answered. **Absence of information and absence of need are not the same fact.**
+
+A delegation with no bounds is not delegation. It is absence wearing the word "explicit", and
+`devia validate` fails it (`DEC-002`).
+
+### Discipline for the two line-based registries
 
 - A decided `MUST` that the code violates is a **debt line**, not a shared understanding.
 - You **add** the line even when you are not going to fix it.

@@ -37,6 +37,18 @@ Priority is when it blocks (`P0` · `P1` · `P2` · `P3` — see [`MATURITY.md`]
 | [MEM-010](memory/MEM-010.md) | Never/always lines come from real incidents | SHOULD | P2 | memory | no | active |
 | [MEM-011](memory/MEM-011.md) | Never delete a registry line you did not discharge | MUST NOT | P0 | memory | yes | active |
 
+## Decisions
+
+| ID | Title | Severity | Priority | Domain | Auto | Status |
+|---|---|---|---|---|---|---|
+| [DEC-001](decision/DEC-001.md) | An undefined decision is never an implicit permission | MUST NOT | P0 | decision | yes | active |
+| [DEC-002](decision/DEC-002.md) | Delegation to an agent is explicit and bounded | MUST | P1 | decision | yes | active |
+| [DEC-003](decision/DEC-003.md) | Every major dependency carries a dated, explained version decision | MUST | P1 | decision | yes | active |
+| [DEC-004](decision/DEC-004.md) | A visual identity is never established as a side effect of implementation | MUST NOT | P1 | decision | no | active |
+| [DEC-005](decision/DEC-005.md) | A missing asset is never substituted | MUST NOT | P1 | decision | yes | active |
+| [DEC-006](decision/DEC-006.md) | Imagery supports a decided direction, it does not compensate for a missing one | SHOULD | P2 | decision | no | active |
+| [DEC-007](decision/DEC-007.md) | Product intent is decided before the surface that carries it | MUST | P1 | decision | yes | active |
+
 ## Engineering
 
 | ID | Title | Severity | Priority | Domain | Auto | Status |
@@ -66,6 +78,13 @@ Priority is when it blocks (`P0` · `P1` · `P2` · `P3` — see [`MATURITY.md`]
 | [DB-006](database/DB-006.md) | Queries the application actually runs are indexed | SHOULD | P2 | database | no | active |
 | [DB-007](database/DB-007.md) | Sensitive actions are written to an append-only audit trail | MUST | P1 | database | no | active |
 | [DB-008](database/DB-008.md) | Queries are parameterised | MUST NOT | P0 | database | yes | active |
+| [DISC-001](discovery/DISC-001.md) | Indexing is a decision, not a framework default | MUST | P1 | discovery | yes | active |
+| [DISC-002](discovery/DISC-002.md) | Every indexable page has a canonical URL, a unique title and a description | MUST | P1 | discovery | yes | active |
+| [DISC-003](discovery/DISC-003.md) | Structured data describes what the page actually shows | MUST | P1 | discovery | yes | active |
+| [DISC-004](discovery/DISC-004.md) | Non-public surfaces are never indexable | MUST NOT | P0 | discovery | yes | active |
+| [DISC-005](discovery/DISC-005.md) | AI crawler access is an explicit, recorded policy | MUST | P1 | discovery | yes | active |
+| [DISC-006](discovery/DISC-006.md) | A convention is never cited as a standard | MUST NOT | P2 | discovery | no | active |
+| [DISC-007](discovery/DISC-007.md) | Localized surfaces declare their alternates | SHOULD | P2 | discovery | yes | active |
 | [OBS-001](observability/OBS-001.md) | Logs are structured, correlated, and free of secrets | MUST | P1 | observability | yes | active |
 | [OBS-002](observability/OBS-002.md) | Errors reach a system a human watches | MUST | P1 | observability | yes | active |
 | [OBS-003](observability/OBS-003.md) | Alerts are actionable and owned | MUST | P1 | observability | no | active |
@@ -164,6 +183,6 @@ Priority is when it blocks (`P0` · `P1` · `P2` · `P3` — see [`MATURITY.md`]
 | [UX-012](ux/UX-012.md) | Human-readable errors | MUST | P1 | ux | no | active |
 | [UX-013](ux/UX-013.md) | Progressive disclosure | SHOULD | P2 | ux | no | active |
 
-**Total:** 141 rules · 141 active · 56 automatable · schema v1
+**Total:** 155 rules · 155 active · 67 automatable · schema v1
 
 Lifecycle and supersession: [`LIFECYCLE.md`](LIFECYCLE.md).

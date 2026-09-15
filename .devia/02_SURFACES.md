@@ -16,8 +16,10 @@
 | `devia context` | The smallest sufficient context for one task | `src/commands/context.mjs` | 1 without `.devia/`, or when a strict target cannot hold the mandatory set |
 | `devia sync` | Pin the standard, or refresh a pinned copy | `src/commands/sync.mjs` | 1 without `.devia/` |
 | `devia skills` | Install adapters and the skill pack, per repository or `--global` | `src/commands/skills.mjs` | 2 on a bad action |
+| `devia decide` | The decision register: read it, and record a ruling, a bounded delegation or a deliberate absence | `src/commands/decide.mjs` | 1 when a pending decision blocks a path that exists, or there is no register; 2 on a ruling with no reason or a delegation with no bounds |
 | `devia gap` / `devia debt` | Registry lines | `src/commands/registry.mjs` | 1 when the id is unknown |
 | `devia contribute` | A devia problem observed here, as an issue or a pull request | `src/commands/contribute.mjs` | 1 when a candidate is not eligible, 2 on a bad action |
+| `devia update` | Is a newer devia published, and what does it bring — in the reader's language | `src/commands/update.mjs` | 1 only when `--yes` ran an install that failed |
 
 Global flags: `--root`, `--json`, `--help`, `--version` (prints the CLI **and** standard
 versions — an adopter pins one and reports the other).
@@ -25,12 +27,32 @@ versions — an adopter pins one and reports the other).
 `init` alone refuses to act on a root it inferred that is not the current directory: `--root` to
 say where, or `--yes` to accept it. Nothing is written before that question is settled.
 
-## The one surface that can reach the network
+## The two surfaces that can reach the network
 
-`devia contribute submit --yes` is the only command in devia that can make a network request, and
-it makes it by handing a prepared file to `gh`. Everything else — recording, reproducing,
-verifying, rendering the payload — is local, and `submit` without `--yes` writes the payload and
-prints the command rather than running it.
+Both delegate: devia ships no HTTP client and no runtime dependency, so a request is always made
+by a tool the user already has, already trusts, and has already pointed at the right endpoint.
+
+| Command | Hands it to | Sends | Guard |
+|---|---|---|---|
+| `contribute submit --yes` | `gh` | A fixture the contributor built and read | Eligible · clean · `--yes` · attributed |
+| `update` | `npm` | The package name, nothing else | Cached a day · off in CI · installs only with `--yes` |
+
+`devia update` answers three questions in order — is there a newer version, what does it bring,
+do you want it — and the third is always the user's. The summary comes from the published
+package's own `devia.release` field, which is how a version that is not installed can be
+described without devia inventing anything about it (`AGT-004`). Remote text is sanitized before
+it is printed: control characters stripped, strings and bullet counts capped (`AI-001`).
+
+Only `update` and `doctor` ever spend a lookup, and `doctor` only when the cached answer is more
+than a day old. Every other command reads `.devia/.update-check.json` or says nothing, so no
+command acquired a network call by carrying the notice. `init` is excluded deliberately: a devia
+you have just installed is the newest one by construction, and a registry round trip on the
+tool's first impression buys nothing.
+
+`devia contribute submit --yes` is the only command that can publish anything about this
+repository, and it makes that request by handing a prepared file to `gh`. Everything else —
+recording, reproducing, verifying, rendering the payload — is local, and `submit` without `--yes`
+writes the payload and prints the command rather than running it.
 
 | Step | Reaches the network | Guard |
 |---|---|---|
@@ -53,10 +75,11 @@ checkout. A pull request is opened only against a branch the contributor already
 
 | Written by | Path in the target repo |
 |---|---|
-| `init` | `.devia/` (memory, `devia.json`, `impact-map.yaml`, `standard/`) |
+| `init` | `.devia/` (memory, `decisions.yaml`, `devia.json`, `impact-map.yaml`, `standard/`) |
 | `init`, `skills install` | `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/devia.mdc`, `.github/copilot-instructions.md`, `.windsurfrules` |
 | `skills install --skill` | `.cursor/skills/devia/SKILL.md`, `.claude/skills/devia/SKILL.md` |
 | `read` | `.devia/reader.html` — a generated snapshot, gitignored, never the source |
+| `doctor`, `update` | `.devia/.update-check.json` — the cached version answer, gitignored |
 | `contribute` | `.devia/contributions/<id>/` — the record, the fixture, and a generated `payload/` |
 | `skills install --global` | Outside the repository, in each agent's own configuration: `~/.claude/skills/devia/`, `~/.codex/skills/devia/`, `~/.cursor/rules/devia.mdc`, `~/.gemini/GEMINI.md` when empty. Copilot and Windsurf report `SKIP` (`12_DEBT.md` D8) |
 
