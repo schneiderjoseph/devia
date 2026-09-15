@@ -123,6 +123,56 @@ project has no use for is a file it fills with `TODO(devia)`, and placeholders a
 stops being read. `devia validate`, `devia doctor` and the impact-map check all resolve the
 required set from `devia.json`.
 
+### Staying current is now devia's job to *say*, and yours to decide
+
+A tool that tells agents never to decide for the project cannot quietly upgrade itself. So
+`devia update` answers three questions in order — is there a newer version, what does it bring,
+do you want it — and stops at the third.
+
+```text
+devia update — 0.9.0
+  INFO  devia 1.1.0 est disponible. Vous êtes en 0.9.0.
+  ...
+  Mettez à jour quand vous le décidez :
+    npm install -D @schneiderjoseph/devia@1.1.0
+    npx devia update --yes
+
+  devia n'installe rien de lui-même — cette commande vous appartient.
+```
+
+The summary is in the reader's language — `en`, `fr`, `es`, `de`, `it`, `pt`, falling back to
+English key by key. Only the lines addressed to a **person** are translated; the standard, the
+rules and every memory file stay in English, because they are read by agents, cited by
+identifier, and a translated obligation is a second wording of the same rule.
+
+devia can describe a version it does not have because every release publishes its own summary in
+its `devia.release` manifest field, which `npm view` serves from the registry. The alternative
+was to summarise a release devia had never seen, which is inventing (`AGT-004`). That text is
+remote, so it is treated as data: control characters stripped, strings and bullet counts capped
+(`AI-001`).
+
+- Nothing is installed without `--yes`, and `--yes` runs the command it just printed
+- The lookup is handed to your own `npm` — your registry, proxy and credentials — because devia
+  ships no HTTP client and no runtime dependency, exactly as `contribute` hands publishing to `gh`
+- The package name is all that is sent. Nothing about the repository leaves it; that promise
+  belongs to `contribute` and is untouched
+- One lookup a day, and only inside `update`, `init` and `doctor`. Every other command reads the
+  cached answer and shows three lines, or says nothing. No command waits on a registry
+- Off with `DEVIA_NO_UPDATE_CHECK=1`, `"update": { "check": false }` in `devia.json`, or CI —
+  where it is off by default, because a build that reaches a registry fails when the registry does
+- The notice never appears on `--json`, and never changes a command's exit code
+
+### Also in this release
+
+- `devia read` now renders the register. A page called "the memory" that omits what the project
+  has ruled on omits the part an agent is least allowed to guess
+- A memory created by an older devia is reported, never failed — a missing `08_DISCOVERY.md` or
+  register warns and names `devia init` as the remedy, and an impact map pointing at a file devia
+  introduced later is one warning rather than one failure per change type. A target devia has
+  never heard of is still a failure, because that is a typo
+- A pasted multi-line reason can no longer make the register unparseable, and a slot key that is
+  not an address is refused before it is written
+
 ### Upgrading from 0.8.0
 
 ```bash

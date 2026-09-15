@@ -49,6 +49,18 @@
 5. CHANGELOG.md: does an existing adopter need to act, or is devia sync enough?
 ```
 
+## Say something to a human rather than to an agent
+
+```text
+1. The standard, the rules and the memory stay in English — they are read by agents and cited by
+   id, and a translated obligation is a second wording of the same rule
+2. A line addressed to the person at the terminal goes through src/lib/i18n.mjs, in the six
+   languages devia actually writes. A seventh ships when the wording can be written properly,
+   never machine-translated
+3. Add the key to every language block; tests/update.test.mjs fails a language missing a key
+4. Update .devia/02_SURFACES.md if the command is new
+```
+
 ## Add a decision slot to a profile
 
 ```text

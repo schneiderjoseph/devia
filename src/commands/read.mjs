@@ -1,6 +1,7 @@
 import path from "node:path";
 import { exists, read, writeFile, walk } from "../lib/fs.mjs";
 import { renderMarkdown, escapeHtml } from "../lib/markdown.mjs";
+import { loadRegister, registerMarkdown } from "../lib/decisions.mjs";
 import { cliVersion } from "../lib/version.mjs";
 import { color, heading, status, line } from "../lib/ui.mjs";
 
@@ -117,17 +118,35 @@ Regenerate it after changing the memory — it is a snapshot, never the source.
     return 1;
   }
 
+  // The register is YAML, so the walk above cannot see it — and a page called "the memory" that
+  // omits what the project has ruled on is missing the part an agent is least allowed to guess.
+  // Rendered from the register rather than stored as a second copy that could drift.
+  const register = loadRegister(deviaDir);
+  let registerPlaced = !register.exists;
+
   const project = path.basename(root);
   const nav = [];
   const articles = [];
-  for (const file of files) {
-    const id = `doc-${file.replace(/\.md$/, "")}`;
-    nav.push(`<a href="#${id}">${escapeHtml(title(file))}</a>`);
+  const push = (id, label, markdown, source) => {
+    nav.push(`<a href="#${id}">${escapeHtml(label)}</a>`);
     articles.push(
-      `<article id="${id}">\n${renderMarkdown(read(path.join(deviaDir, file)) || "")}\n` +
-        `<footer>${escapeHtml(file)} · .devia/</footer></article>`
+      `<article id="${id}">\n${renderMarkdown(markdown)}\n` +
+        `<footer>${escapeHtml(source)} · .devia/</footer></article>`
     );
+  };
+  const placeRegister = () => {
+    if (registerPlaced) return;
+    registerPlaced = true;
+    push("doc-decisions", "— · decisions", registerMarkdown(register), "decisions.yaml");
+  };
+
+  for (const file of files) {
+    // The register sits where its subject sits: after the numbered files that describe the
+    // product, and before the registries that record what is still open.
+    if (/^1\d_/.test(file)) placeRegister();
+    push(`doc-${file.replace(/\.md$/, "")}`, title(file), read(path.join(deviaDir, file)) || "", file);
   }
+  placeRegister();
 
   const today = new Date().toISOString().slice(0, 10);
   const html = `<!doctype html>
@@ -151,7 +170,11 @@ ${articles.join("\n")}
   writeFile(out, html);
 
   heading(`devia read — ${project}`);
-  status("PASS", `${files.length} memory files rendered`, `${Math.round(html.length / 1024)} kB`);
+  status(
+    "PASS",
+    `${articles.length} memory files rendered`,
+    `${Math.round(html.length / 1024)} kB${register.exists ? ", register included" : ""}`
+  );
   status("PASS", "written", out);
   line("");
   line(color.dim("  Open it directly — no server needed. Regenerate after changing the memory."));

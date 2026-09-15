@@ -32,6 +32,8 @@
 | Rule loading and invariants | [`../src/lib/rules.mjs`](../src/lib/rules.mjs) |
 | Gate table, shared by check and context | [`../src/lib/gates.mjs`](../src/lib/gates.mjs) |
 | Decision register: statuses, checks, YAML editing | [`../src/lib/decisions.mjs`](../src/lib/decisions.mjs) |
+| Version lookup, cache and release notes | [`../src/lib/update.mjs`](../src/lib/update.mjs) |
+| The few sentences said to a human, translated | [`../src/lib/i18n.mjs`](../src/lib/i18n.mjs) |
 | Context routing, tiers and budget | [`../src/lib/context.mjs`](../src/lib/context.mjs) |
 | Token estimation | [`../src/lib/tokens.mjs`](../src/lib/tokens.mjs) |
 | Redaction and payload residue | [`../src/lib/sanitize.mjs`](../src/lib/sanitize.mjs) |

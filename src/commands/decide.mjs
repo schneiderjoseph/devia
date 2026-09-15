@@ -4,6 +4,7 @@ import { trackedFiles } from "../lib/git.mjs";
 import {
   REGISTER_FILE,
   MEANING,
+  KEY_SHAPE,
   loadRegister,
   registerIssues,
   countByStatus,
@@ -268,6 +269,14 @@ export default async function decide(ctx) {
   const key = String(args._[2] || "").trim();
   if (!key) {
     status("FAIL", "usage", `devia decide ${action} <key>`);
+    return 2;
+  }
+  // The key is not a label, it is an address: its first segment is the group the context router
+  // routes on, and `devia check` reads it back out of YAML. A key that does not hold that shape
+  // is refused here rather than written and puzzled over later.
+  if (!KEY_SHAPE.test(key)) {
+    status("FAIL", `"${key}" is not a slot key`, "lowercase dotted segments, e.g. brand.logo");
+    line("");
     return 2;
   }
 

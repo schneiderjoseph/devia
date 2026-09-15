@@ -26,7 +26,7 @@ const bin = path.join(packageRoot, "bin", "devia.mjs");
 const { FORCE_COLOR, ...cleanEnv } = process.env;
 
 function devia(args, cwd, { allowFailure = true, env = {} } = {}) {
-  const options = { cwd, encoding: "utf8", env: { ...cleanEnv, NO_COLOR: "1", ...env } };
+  const options = { cwd, encoding: "utf8", env: { ...cleanEnv, NO_COLOR: "1", DEVIA_NO_UPDATE_CHECK: "1", ...env } };
   try {
     return { code: 0, out: execFileSync(process.execPath, [bin, ...args], options), err: "" };
   } catch (e) {

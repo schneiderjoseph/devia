@@ -27,7 +27,7 @@ const bin = path.join(packageRoot, "bin", "devia.mjs");
 const { FORCE_COLOR, ...cleanEnv } = process.env;
 
 function devia(args, cwd, { allowFailure = false } = {}) {
-  const options = { cwd, encoding: "utf8", env: { ...cleanEnv, NO_COLOR: "1" } };
+  const options = { cwd, encoding: "utf8", env: { ...cleanEnv, NO_COLOR: "1", DEVIA_NO_UPDATE_CHECK: "1" } };
   try {
     return { code: 0, out: execFileSync(process.execPath, [bin, ...args], options), err: "" };
   } catch (e) {
@@ -225,6 +225,36 @@ test("a value that would parse as something else is quoted on the way out", () =
   assert.equal(parseYaml(text).decisions["x.y"].value, "a: b # not a comment");
 });
 
+test("a pasted multi-line reason cannot make the register unreadable", () => {
+  const because = "the client decided this\n\nin the meeting on Tuesday";
+  const text = upsertSlot("version: 1\n\ndecisions:\n", "brand.colors", {
+    status: "decided",
+    value: "the tokens in tokens/brand.json",
+    because,
+    decided_at: "2026-09-15",
+  });
+  const parsed = parseYaml(text);
+  assert.equal(parsed.decisions["brand.colors"].status, "decided");
+  assert.equal(
+    parsed.decisions["brand.colors"].because,
+    "the client decided this in the meeting on Tuesday"
+  );
+});
+
+test("a key that is not a slot address is refused before it is written", () => {
+  const dir = scratch();
+  try {
+    devia(["init", "--root", dir, "--no-agents"], dir);
+    const before = fs.readFileSync(path.join(dir, ".devia", "decisions.yaml"), "utf8");
+    const res = devia(["decide", "open", "Brand Logo!", "--root", dir], dir, { allowFailure: true });
+    assert.equal(res.code, 2);
+    assert.match(res.out, /not a slot key/);
+    assert.equal(fs.readFileSync(path.join(dir, ".devia", "decisions.yaml"), "utf8"), before);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("renderSlot writes only the fields that carry something", () => {
   const out = renderSlot("brand.logo", { status: "pending", owner: "human", value: "", blocks: [] });
   assert.equal(out, "  brand.logo:\n    status: pending\n    owner: human");
@@ -364,6 +394,54 @@ test("check reports the decision the manifest contradicts", () => {
   }
 });
 
+test("a memory created by 0.8.0 does not start failing because 0.9.0 was installed", () => {
+  const dir = scratch({ name: "legacy", dependencies: { next: "^15.2.0" } });
+  try {
+    devia(["init", "--root", dir, "--no-agents"], dir);
+    // What an 0.8.0 memory is: no register, no discovery file, and a devia.json from before.
+    fs.rmSync(path.join(dir, ".devia", "decisions.yaml"));
+    fs.rmSync(path.join(dir, ".devia", "08_DISCOVERY.md"));
+    const configPath = path.join(dir, ".devia", "devia.json");
+    const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+    fs.writeFileSync(
+      configPath,
+      JSON.stringify({ ...config, deviaVersion: "0.8.0", standardVersion: "0.2.0" }, null, 2)
+    );
+
+    const res = devia(["validate", "--root", dir, "--json"], dir, { allowFailure: true });
+    const report = JSON.parse(res.out);
+    const failures = report.results.filter((r) => r.kind === "FAIL");
+    assert.deepEqual(failures, [], "an upgrade that reddens every existing build is a bill");
+    assert.equal(res.code, 0);
+
+    // Each one is reported, with the remedy, and named once rather than once per impact entry.
+    const warnings = report.results.filter((r) => r.kind === "WARN").map((r) => r.label);
+    assert.ok(warnings.some((w) => w.includes("08_DISCOVERY.md")));
+    assert.ok(warnings.some((w) => w.includes("decisions.yaml")));
+    assert.equal(warnings.filter((w) => w.startsWith("impact-map points at decisions.yaml")).length, 1);
+
+    // And `devia init` is in fact the whole remedy.
+    devia(["init", "--root", dir, "--no-agents"], dir);
+    const after = JSON.parse(devia(["validate", "--root", dir, "--json"], dir, { allowFailure: true }).out);
+    assert.equal(after.ok, true, JSON.stringify(after.results.filter((r) => r.kind === "FAIL")));
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("an impact-map target devia has never heard of is still a failure", () => {
+  const dir = scratch();
+  try {
+    devia(["init", "--root", dir, "--no-agents"], dir);
+    const map = path.join(dir, ".devia", "impact-map.yaml");
+    fs.appendFileSync(map, '  typo_change:        ["09_TYPO.md"]\n');
+    const report = JSON.parse(devia(["validate", "--root", dir, "--json"], dir, { allowFailure: true }).out);
+    assert.ok(report.results.some((r) => r.kind === "FAIL" && r.label.includes("09_TYPO.md")));
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("a repository with no register is skipped, not failed", () => {
   const dir = scratch();
   try {
@@ -418,6 +496,23 @@ test("a decision unrelated to the task does not ride along in the blocking tier"
 
     const brand = corpus.find((i) => i.kind === "decision" && i.id === "brand.typography");
     assert.notEqual(brand.tier, "T0");
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("the reader shows the register, between the product files and the registries", () => {
+  const dir = scratch({ name: "web", dependencies: { next: "^15.2.0" } });
+  try {
+    devia(["init", "--root", dir, "--no-agents"], dir);
+    devia(["read", "--root", dir], dir);
+    const html = fs.readFileSync(path.join(dir, ".devia", "reader.html"), "utf8");
+
+    const order = [...html.matchAll(/href="#(doc-[A-Za-z0-9_]+)"/g)].map((m) => m[1]);
+    assert.ok(order.includes("doc-decisions"), "a page called the memory shows what was ruled on");
+    assert.ok(order.indexOf("doc-decisions") > order.indexOf("doc-07_DESIGN"));
+    assert.ok(order.indexOf("doc-decisions") < order.indexOf("doc-11_GAPS"));
+    assert.match(html, /discovery\.ai_crawlers/);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

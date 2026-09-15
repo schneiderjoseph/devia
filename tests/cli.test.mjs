@@ -24,7 +24,7 @@ const { FORCE_COLOR, ...cleanEnv } = process.env;
 // stdout is a contract: `--json` is parsed from it. Merging stderr into it on failure turned a
 // harmless runtime warning into unparseable JSON, and only for whoever had FORCE_COLOR set.
 function devia(args, cwd, { allowFailure = false, env = {} } = {}) {
-  const options = { cwd, encoding: "utf8", env: { ...cleanEnv, NO_COLOR: "1", ...env } };
+  const options = { cwd, encoding: "utf8", env: { ...cleanEnv, NO_COLOR: "1", DEVIA_NO_UPDATE_CHECK: "1", ...env } };
   try {
     return { code: 0, out: execFileSync(process.execPath, [bin, ...args], options), err: "" };
   } catch (e) {
@@ -167,7 +167,7 @@ test("--json keeps stdout parseable when the environment forces colour", () => {
       stdout = execFileSync(process.execPath, [bin, "check", "--root", dir, "--json"], {
         cwd: dir,
         encoding: "utf8",
-        env: { ...cleanEnv, NO_COLOR: "1", FORCE_COLOR: "1" },
+        env: { ...cleanEnv, NO_COLOR: "1", DEVIA_NO_UPDATE_CHECK: "1", FORCE_COLOR: "1" },
       });
     } catch (e) {
       stdout = e.stdout || "";
@@ -316,9 +316,13 @@ test("read renders the memory into one self-contained page", () => {
     for (const external of ["fetch(", "http://", "https://", "<script src", "<link rel"]) {
       assert.ok(!page.includes(external), `the page must not depend on ${external}`);
     }
-    // Every memory file is present, and the contract opens the list.
+    // Every memory file is present, and the contract opens the list. Plus the register, which is
+    // YAML and so is rendered rather than walked — a page called "the memory" that omits what the
+    // project has ruled on omits the part an agent is least allowed to guess.
     const articles = page.match(/<article id="doc-/g) || [];
-    assert.equal(articles.length, fs.readdirSync(path.join(dir, ".devia")).filter((f) => f.endsWith(".md")).length);
+    const markdown = fs.readdirSync(path.join(dir, ".devia")).filter((f) => f.endsWith(".md"));
+    assert.equal(articles.length, markdown.length + 1);
+    assert.ok(page.includes('id="doc-decisions"'));
     assert.ok(page.indexOf('id="doc-AGENTS"') < page.indexOf('id="doc-00_OVERVIEW"'));
     // The subset actually rendered: the templates are full of tables and fenced commands.
     assert.ok((page.match(/<table>/g) || []).length > 3, "tables must render");

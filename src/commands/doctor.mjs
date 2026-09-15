@@ -5,6 +5,9 @@ import { standardVersion } from "../lib/version.mjs";
 import { color, heading, status, line } from "../lib/ui.mjs";
 import { ADAPTERS } from "./skills.mjs";
 import { requiredMemory, registryIds } from "./validate.mjs";
+import { refreshCache } from "./update.mjs";
+import { status as updateStatus } from "../lib/update.mjs";
+import { detectLanguage, t } from "../lib/i18n.mjs";
 
 function lastCommitTime(root, pathspec) {
   const out = git(root, ["log", "-1", "--format=%ct", "--", ...pathspec]);
@@ -130,6 +133,25 @@ ${color.bold("devia doctor")} — adoption, drift and staleness
     const branch = git(root, ["rev-parse", "--abbrev-ref", "HEAD"]);
     const isDefault = ["main", "master"].includes(branch);
     status(isDefault ? "WARN" : "PASS", `branch: ${branch}`, isDefault ? "work happens on a branch (OPS-002)" : "");
+  }
+
+  // Is this devia itself current?
+  //
+  // Doctor is the command whose whole job is "is this setup stale", so it is the one that spends
+  // the lookup. Every other command reads the answer it leaves behind, which is how a version
+  // check never lands on a hot path. Nothing is installed here, ever — `devia update` prints the
+  // command and `--yes` is the only thing that runs it.
+  refreshCache(deviaDir, config);
+  const release = updateStatus(deviaDir, { config });
+  if (!release.allowed) {
+    status("SKIP", `devia ${release.current}`, "version checking is off here");
+  } else if (release.updateAvailable) {
+    const say = t(detectLanguage());
+    status("WARN", say.newer(release.latest, release.current), "`devia update` says what it brings");
+  } else if (release.latest) {
+    status("PASS", `devia ${release.current}`, "newest published version");
+  } else {
+    status("SKIP", `devia ${release.current}`, "registry not reached — `devia update` retries");
   }
 
   line("");

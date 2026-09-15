@@ -120,9 +120,18 @@ ${color.bold("devia validate")} — memory integrity
   const config = readJSON(path.join(deviaDir, "devia.json"));
   const profile = config?.project?.profile;
   const required = requiredMemory(profile);
-  for (const file of required) {
+  for (const file of REQUIRED_MEMORY) {
     if (exists(path.join(deviaDir, file))) add("PASS", `memory file ${file}`);
     else add("FAIL", `missing ${file}`, "run `devia init` to restore the template");
+  }
+  // A file a later version of devia introduced is reported, never failed. A memory created by
+  // 0.8.0 has no `08_DISCOVERY.md` and no register, and an upgrade that turns every existing
+  // adopter's build red is a bill, not an upgrade path — `devia init` adds them and touches
+  // nothing else. What it protects is already covered: the indexing policy is a slot in the
+  // register, and DEC-PENDING reports it.
+  for (const file of optionalMemoryFor(profile)) {
+    if (exists(path.join(deviaDir, file))) add("PASS", `memory file ${file}`);
+    else add("WARN", `no ${file}`, `the ${profile} profile owes one — run \`devia init\``);
   }
 
   // 2. Configuration
@@ -150,22 +159,34 @@ ${color.bold("devia validate")} — memory integrity
     const impacts = map.impacts || {};
     const keys = Object.keys(impacts);
     if (!keys.length) add("FAIL", "impact-map.yaml has no impacts", "MEM-009 cannot be checked");
-    let missing = 0;
-    // A target this profile does not own is not a broken map. The shared template names
-    // `08_DISCOVERY.md`, and a CLI tool has nothing to be discovered — the required-files check
-    // above is what catches a web app that deleted the file it does own.
+    // A target this profile does not own is not a broken map: the shared template names
+    // `08_DISCOVERY.md`, and a CLI tool has nothing to be discovered.
     const notOwed = new Set(
       Object.keys(OPTIONAL_MEMORY).filter((f) => !optionalMemoryFor(profile).includes(f))
     );
+    // A file devia itself introduced later is reported once, with the remedy. A target devia has
+    // never heard of is a typo or a rename the project did not finish, and that is a failure.
+    const deviaOwns = new Set([REGISTER_FILE, ...Object.keys(OPTIONAL_MEMORY)]);
+    const absent = new Map();
     for (const [key, targets] of Object.entries(impacts)) {
       for (const t of [].concat(targets || [])) {
         const rel = String(t);
         if (rel.startsWith(".") || rel.includes("/")) continue; // points outside .devia
         if (notOwed.has(rel)) continue;
-        if (!exists(path.join(deviaDir, rel))) {
-          add("FAIL", `impact-map: ${key} -> ${rel} does not exist`);
-          missing++;
-        }
+        if (exists(path.join(deviaDir, rel))) continue;
+        if (!absent.has(rel)) absent.set(rel, []);
+        absent.get(rel).push(key);
+      }
+    }
+    // Aggregated: six change types naming one missing file is one problem, not six.
+    let missing = 0;
+    for (const [rel, keys2] of absent) {
+      const why = `named by ${keys2.slice(0, 3).join(", ")}${keys2.length > 3 ? `, +${keys2.length - 3}` : ""}`;
+      if (deviaOwns.has(rel)) {
+        add("WARN", `impact-map points at ${rel}, which this memory does not have yet`, `${why} — run \`devia init\``);
+      } else {
+        add("FAIL", `impact-map: ${rel} does not exist`, why);
+        missing++;
       }
     }
     if (!missing && keys.length) add("PASS", `impact map: ${keys.length} change types`);

@@ -277,6 +277,58 @@ export function stackDrift(slots, deps) {
   return out;
 }
 
+/**
+ * The register as markdown, for the readers that render the memory as prose.
+ *
+ * `devia read` walks the `.md` files, and the register is YAML — so without this it is the one
+ * part of the memory that does not appear in the page called "the memory". Generated rather than
+ * stored: a second copy of the rulings is a second thing to keep true.
+ */
+export function registerMarkdown(register) {
+  const out = ["# Decisions", ""];
+  out.push("> What this project owes an explicit answer to. A `pending` line is a question with");
+  out.push("> an owner, never a blank for an implementation to fill (`DEC-001`).");
+  out.push("");
+  if (!register.slots.length) {
+    out.push("The register is empty.");
+    out.push("");
+    return out.join("\n");
+  }
+
+  const counts = countByStatus(register.slots);
+  out.push("| Status | Means | Count |");
+  out.push("|---|---|---|");
+  for (const status of STATUSES) {
+    out.push(`| \`${status}\` | ${MEANING[status]} | ${counts[status]} |`);
+  }
+  out.push("");
+
+  const groups = new Map();
+  for (const s of [...register.slots].sort((a, b) => a.key.localeCompare(b.key))) {
+    if (!groups.has(s.group)) groups.set(s.group, []);
+    groups.get(s.group).push(s);
+  }
+  const cell = (v) => String(v || "").replace(/\|/g, "\|") || "—";
+  for (const [group, slots] of groups) {
+    out.push(`## ${group}`);
+    out.push("");
+    out.push("| Decision | Status | Value | Why | Owner | Decided |");
+    out.push("|---|---|---|---|---|---|");
+    for (const s of slots) {
+      const value =
+        s.status === "delegated"
+          ? `bounded by: ${s.bounded_by}`
+          : s.value || s.path || (s.status === "pending" ? s.question : "");
+      out.push(
+        `| \`${s.key}\` | ${cell(s.status)} | ${cell(value)} | ${cell(s.because)} | ` +
+          `${cell(s.owner || s.to)} | ${cell(s.decided_at)} |`
+      );
+    }
+    out.push("");
+  }
+  return out.join("\n");
+}
+
 /* ------------------------------------------------------------------ writing */
 
 const FIELD_ORDER = [
@@ -294,9 +346,19 @@ const FIELD_ORDER = [
   "note",
 ];
 
-/** Quote only what the parser would otherwise read as something else. */
+/** A slot key: lowercase dotted segments, which is what `groupOf` and the router rely on. */
+export const KEY_SHAPE = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)*$/;
+
+/**
+ * Quote only what the parser would otherwise read as something else.
+ *
+ * A line break is folded to a space rather than escaped: devia's YAML is a deliberate subset that
+ * reads no escape sequence but `\\"`, so `"a\\nb"` would round-trip as the literal characters and a
+ * raw newline would end the value and make the rest of the sentence an unparseable line. A reason
+ * somebody pasted out of a chat must not be able to make the register unreadable.
+ */
 export function yamlScalar(value) {
-  const s = String(value);
+  const s = String(value).replace(/\s*[\r\n]+\s*/g, " ").trim();
   if (s === "") return '""';
   if (/^(true|false|null|~)$/i.test(s)) return `"${s}"`;
   if (/^-?\d+(\.\d+)?$/.test(s)) return `"${s}"`;

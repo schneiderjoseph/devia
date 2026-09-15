@@ -26,7 +26,8 @@ Created by `devia init` (devia {{DEVIA_VERSION}}, {{DATE}}).
 | 13 | [`13_RECIPES.md`](13_RECIPES.md) | How do I do this routine task here? |
 | 14 | [`14_INDEX.md`](14_INDEX.md) | Where do I find X? |
 
-Machine files: [`devia.json`](devia.json) (profile, maturity, pinned version, context budget) and
+Machine files: [`devia.json`](devia.json) (profile, maturity, pinned version, context budget),
+[`decisions.yaml`](decisions.yaml) (the decision register) and
 [`impact-map.yaml`](impact-map.yaml) (change type → files to update).
 
 The standard itself is not copied in here. Read it with `npx devia rules --id SEC-001` or

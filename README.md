@@ -44,6 +44,7 @@ npx devia check               # production readiness (P0/P1)
 npx devia doctor              # adoption + staleness diagnosis
 npx devia context "<task>"    # the smallest sufficient context for one task
 npx devia decide              # the decision register: decided · pending · delegated
+npx devia update              # is there a newer devia, and what does it bring?
 ```
 
 `devia init` writes:
@@ -122,6 +123,47 @@ gate that failed on every open question would be switched off inside a week.
 devia never asks a registry what the newest release is — it has no network, and "latest" rots in
 a file the day after it is written. "Is 16 still the newest" is `npm outdated`'s question. "Did
 we decide 16 and ship 15" is devia's, and it is the one that is actually a defect.
+
+## Staying current, without devia deciding that for you
+
+`devia update` answers three questions in order, and the third is always yours.
+
+```text
+$ npx devia update
+
+devia update — 0.9.0
+  INFO  devia 1.1.0 est disponible. Vous êtes en 0.9.0.
+
+  Ce qu'apporte la version 1.1.0 :
+  ...
+
+  Mettez à jour quand vous le décidez :
+    npm install -D @schneiderjoseph/devia@1.1.0
+    npx devia update --yes
+
+  devia n'installe rien de lui-même — cette commande vous appartient.
+```
+
+The summary is in the reader's language — six of them, plus English — because that is the only
+part of devia addressed to a person rather than to an agent. The standard, the rules and every
+memory file stay in English: they are read by agents and cited by identifier, and a translated
+obligation is a second wording of the same rule.
+
+It can describe a version you have not installed because each release publishes its own summary
+in its `devia.release` field, which `npm view` serves from the registry. devia does not summarise
+a release it does not have — that would be inventing, and this whole version is an argument
+against that (`AGT-004`). Remote text is sanitized before it reaches your terminal.
+
+| | |
+|---|---|
+| Installs | Never on its own. `--yes` runs the command it just printed, and nothing else |
+| Reaches the network | Through your own `npm` — your registry, your proxy, your credentials |
+| Sends | The package name. Nothing about this repository (that stays `contribute`'s promise) |
+| Costs | One lookup a day, inside `update`, `init` and `doctor`. No other command waits on it |
+| Off with | `DEVIA_NO_UPDATE_CHECK=1`, `"update": { "check": false }`, or being in CI |
+
+Other commands show a three-line notice from the cached answer, never a fresh lookup — and never
+on `--json`, which is a contract.
 
 ## Rule zero
 
