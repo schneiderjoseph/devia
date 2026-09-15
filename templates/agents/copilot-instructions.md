@@ -7,6 +7,9 @@ This repository runs on devia. The project memory is `.devia/`.
   (`.devia/14_INDEX.md`).
 - Do not invent endpoints, fields, config keys or business rules. Follow the contracts recorded
   in `.devia/02_SURFACES.md` and `.devia/03_DATA_MODEL.md`.
+- Do not answer a question `.devia/decisions.yaml` records as `pending` — a brand, a palette, a
+  framework major, an indexing policy. Suggest the code that works without it, and say what is
+  waiting on a human. A missing asset stays missing.
 - Authorization is server-side; input is validated at the boundary; no secrets in source; schema
   changes are versioned migrations.
 - UI changes need an accessible name, a keyboard path, visible focus, persistent labels, and

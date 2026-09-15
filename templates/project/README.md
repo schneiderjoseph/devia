@@ -19,6 +19,8 @@ Created by `devia init` (devia {{DEVIA_VERSION}}, {{DATE}}).
 | 05 | [`05_FLOWS.md`](05_FLOWS.md) | What journeys must never break? |
 | 06 | [`06_INTEGRATIONS.md`](06_INTEGRATIONS.md) | What external services, and which secrets? |
 | 07 | [`07_DESIGN.md`](07_DESIGN.md) | What tokens, components and interface decisions? |
+| 08 | [`08_DISCOVERY.md`](08_DISCOVERY.md) | How is this found, by search and by machines? |
+| — | [`decisions.yaml`](decisions.yaml) | What has been **ruled on**, and what has not? |
 | 11 | [`11_GAPS.md`](11_GAPS.md) | What is **not decided**? |
 | 12 | [`12_DEBT.md`](12_DEBT.md) | What is decided and **not built**? |
 | 13 | [`13_RECIPES.md`](13_RECIPES.md) | How do I do this routine task here? |
@@ -61,12 +63,29 @@ target and compresses them toward their identifiers instead, never dropping one.
 Keeping `10_NEVER_ALWAYS.md` pruned matters here: every line is admitted before the target is
 consulted, so a line nobody has ever violated costs every task that runs after it.
 
-## The two registries
+## The three registries
 
 | File | Means | Never |
 |---|---|---|
-| `11_GAPS.md` | Undecided. Nobody has ruled. | Quietly pick an answer and code it |
+| `decisions.yaml` | The questions this kind of project always has. | Treat `pending` as permission |
+| `11_GAPS.md` | A question somebody hit while working. Nobody has ruled. | Quietly pick an answer and code it |
 | `12_DEBT.md` | Decided, not built. | Delete a line you did not discharge |
+
+The register holds the **known** unknowns — enumerated before the work starts, from what this
+kind of project is. The gap registry holds the ones nobody saw coming. Both mean the same thing
+to an agent about to write code: an undefined decision is not an implicit permission
+(`DEC-001`).
+
+```bash
+npx devia decide                 every slot, grouped, with its status
+npx devia decide pending         only what nobody has ruled on
+npx devia decide set stack.framework "16.x" --package next --because "..."
+npx devia decide delegate testing.framework --bounded-by "runs in CI with no network"
+npx devia decide drop content.imagery --because "this product ships no imagery"
+```
+
+Four statuses, because absence of information and absence of need are different facts:
+`decided`, `pending`, `delegated`, `not_required`.
 
 ## Maintenance
 

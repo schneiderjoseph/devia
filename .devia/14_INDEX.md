@@ -16,6 +16,7 @@
 | What do we depend on? | [`06_INTEGRATIONS.md`](06_INTEGRATIONS.md) |
 | How does the output look? | [`07_DESIGN.md`](07_DESIGN.md) |
 | What is banned here? | [`10_NEVER_ALWAYS.md`](10_NEVER_ALWAYS.md) |
+| What has this project ruled on? | [`decisions.yaml`](decisions.yaml) · `node bin/devia.mjs decide` |
 | What is undecided? | [`11_GAPS.md`](11_GAPS.md) |
 | What is owed? | [`12_DEBT.md`](12_DEBT.md) |
 | How do I do X? | [`13_RECIPES.md`](13_RECIPES.md) |
@@ -30,6 +31,7 @@
 | YAML subset parser | [`../src/lib/yaml.mjs`](../src/lib/yaml.mjs) |
 | Rule loading and invariants | [`../src/lib/rules.mjs`](../src/lib/rules.mjs) |
 | Gate table, shared by check and context | [`../src/lib/gates.mjs`](../src/lib/gates.mjs) |
+| Decision register: statuses, checks, YAML editing | [`../src/lib/decisions.mjs`](../src/lib/decisions.mjs) |
 | Context routing, tiers and budget | [`../src/lib/context.mjs`](../src/lib/context.mjs) |
 | Token estimation | [`../src/lib/tokens.mjs`](../src/lib/tokens.mjs) |
 | Redaction and payload residue | [`../src/lib/sanitize.mjs`](../src/lib/sanitize.mjs) |

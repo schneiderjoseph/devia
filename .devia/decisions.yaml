@@ -1,0 +1,57 @@
+# The decision register — what this project owes an explicit answer to.
+#
+#   decided       a human ruled; the value is binding
+#   pending       nobody has ruled — do not encode an answer (DEC-001)
+#   delegated     the agent may choose, within bounded_by (DEC-002)
+#   not_required  deliberately not needed here
+#
+# A missing answer is a recorded state, never an empty space for the next agent to fill in.
+# Read it with `devia decide`; write it with `devia decide set | delegate | drop | open`.
+#
+# Optional fields that give a slot teeth:
+#   path:     the file this decision delivers — checked to exist once decided (DEC-005)
+#   package:  the dependency it pins — compared with the manifest (DEC-003)
+#   blocks:   paths that must not exist while this is pending — a P0 gate (DEC-001)
+
+version: 1
+
+decisions:
+  ops.hosting:
+    question: Where it runs
+    status: not_required
+    because: published to npm and run by npx; there is nothing hosted
+    decided_at: 2026-09-15
+  product.audience:
+    question: Who it is for
+    status: decided
+    value: Anyone running an AI coding agent on a repository they are responsible for — the agent is the reader, the human is the owner
+    because: devia is for every agent, not one vendor (settled in the 0.6.0 release)
+    decided_at: 2026-09-15
+  product.purpose:
+    question: What this product is for, in one sentence
+    status: decided
+    value: One standard and one living memory that AI coding agents read before they write, and update in the same change
+    because: settled at 0.1.0 and unchanged since; every command exists to serve it
+    decided_at: 2026-09-15
+  stack.data_store:
+    question: Where state lives
+    status: not_required
+    because: state is the repository on disk; devia stores nothing of its own
+    decided_at: 2026-09-15
+  stack.framework:
+    question: The framework, and the version selected at initialisation
+    status: not_required
+    because: a CLI with zero runtime dependencies has no framework, and that is the product decision
+    decided_at: 2026-09-15
+  stack.language:
+    question: Language and runtime version
+    status: decided
+    value: Node.js >= 20, ES modules
+    because: the engines field the package already declares; ESM because devia ships no build step
+    decided_at: 2026-09-15
+  testing.framework:
+    question: What runs the tests
+    status: decided
+    value: node --test
+    because: ships with the runtime, so the zero-dependency promise survives the test suite
+    decided_at: 2026-09-15

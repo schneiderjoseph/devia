@@ -15,6 +15,7 @@ const COMMANDS = {
   contribute: () => import("./commands/contribute.mjs"),
   sync: () => import("./commands/sync.mjs"),
   skills: () => import("./commands/skills.mjs"),
+  decide: () => import("./commands/decide.mjs"),
   gap: () => import("./commands/registry.mjs"),
   debt: () => import("./commands/registry.mjs"),
 };
@@ -31,6 +32,7 @@ ${color.bold("devia")} — one standard, one memory
   ${color.bold("devia context")}     the smallest sufficient context for one task
   ${color.bold("devia sync")}        pin the standard under .devia/standard/, or refresh it
   ${color.bold("devia skills")}      install the agent adapters (install --agent all)
+  ${color.bold("devia decide")}      the decision register — what is decided, pending, delegated
   ${color.bold("devia gap")}         add or close a line in 11_GAPS.md
   ${color.bold("devia debt")}        add or close a line in 12_DEBT.md
   ${color.bold("devia contribute")}  turn a devia problem you hit here into an issue or a PR

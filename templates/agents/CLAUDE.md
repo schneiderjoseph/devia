@@ -17,6 +17,10 @@ No `.devia/`? Run `npm i -D @schneiderjoseph/devia && npx devia init`, then fill
 
 - Never invent an endpoint, field, config key or business rule. Record the unknown in
   `.devia/11_GAPS.md` or ask.
+- A `pending` line in `.devia/decisions.yaml` is not permission to choose one. No brand, palette,
+  typeface, framework major or robots policy decided as a side effect of implementation. Decide
+  only where the register says `delegated`, inside its bounds (`npx devia decide pending`).
+- A missing asset stays missing. Never generate a placeholder logo or image.
 - Decided but not built goes to `.devia/12_DEBT.md`. Never delete a line you did not discharge.
 - Smallest change that satisfies the request; no drive-by refactors.
 - Never skip a hook, disable a test, or weaken a rule to make a check pass.

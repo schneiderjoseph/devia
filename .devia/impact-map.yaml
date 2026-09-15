@@ -38,7 +38,10 @@ impacts:
   new_context_signal:  ["01_ARCHITECTURE.md"]
   network_surface:     ["02_SURFACES.md", "04_PERMISSIONS.md"]
 
-  decision_recorded:   ["11_GAPS.md"]
+  decision_recorded:   ["decisions.yaml", "11_GAPS.md"]
+  stack_version:       ["decisions.yaml", "00_OVERVIEW.md"]
+  delegation_granted:  ["decisions.yaml"]
+  new_decision_slot:   ["decisions.yaml"]
   rule_not_yet_built:  ["12_DEBT.md"]
   incident_postmortem: ["10_NEVER_ALWAYS.md"]
   new_routine_task:    ["13_RECIPES.md"]

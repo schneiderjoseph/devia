@@ -39,12 +39,25 @@
 ## Change what `devia init` writes
 
 ```text
-1. Edit templates/project/ (or templates/agents/)
+1. Edit templates/project/ (every profile) or templates/optional/ (some profiles)
 2. Placeholders: {{PROJECT_NAME}}, {{DEVIA_VERSION}}, {{DATE}}; unfilled content is marked with
    the token that `validate` counts (see REQUIRED_MEMORY and PLACEHOLDER there)
-3. If a new memory file is required, add it to REQUIRED_MEMORY in src/commands/validate.mjs
+3. A file every project owes goes in REQUIRED_MEMORY; one only some profiles owe goes in
+   OPTIONAL_MEMORY — both in src/commands/validate.mjs, which is what validate, doctor and the
+   impact-map check all resolve the required set from
 4. npm test   # the materialised-link test covers template links
 5. CHANGELOG.md: does an existing adopter need to act, or is devia sync enough?
+```
+
+## Add a decision slot to a profile
+
+```text
+1. PROFILE_SLOTS in src/lib/decisions.mjs — key is `group.name`, and the group is what routes
+2. DECISION_DOMAINS in src/lib/context.mjs if the group is new, or the slot reaches no task
+3. A slot earns its place by being a decision an agent has been seen to make on its own. A
+   register nobody finishes reading protects nothing
+4. npm test   # tests/decisions.test.mjs asserts what each profile is and is not asked
+5. Existing adopters do not get it until they re-run `devia init` — say so in CHANGELOG.md
 ```
 
 ## Change how context is routed or budgeted

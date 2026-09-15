@@ -5,6 +5,8 @@ import { trackedFiles } from "../lib/git.mjs";
 import { cliVersion, standardVersion } from "../lib/version.mjs";
 import { vendorStandard } from "../lib/vendor.mjs";
 import { DEFAULT_BUDGET } from "../lib/context.mjs";
+import { REGISTER_FILE, slotsForProfile, renderSlot } from "../lib/decisions.mjs";
+import { optionalMemoryFor } from "./validate.mjs";
 import { color, heading, status, line } from "../lib/ui.mjs";
 import { installAdapters, ADAPTERS } from "./skills.mjs";
 
@@ -16,6 +18,35 @@ const PROFILES = {
   "design-system": "Component library or design system",
   docs: "Documentation or content repository",
 };
+
+const REGISTER_HEADER = `# The decision register — what this project owes an explicit answer to.
+#
+#   decided       a human ruled; the value is binding
+#   pending       nobody has ruled — do not encode an answer (DEC-001)
+#   delegated     the agent may choose, within bounded_by (DEC-002)
+#   not_required  deliberately not needed here
+#
+# A missing answer is a recorded state, never an empty space for the next agent to fill in.
+# Read it with \`devia decide\`; write it with \`devia decide set | delegate | drop | open\`.
+#
+# Optional fields that give a slot teeth:
+#   path:     the file this decision delivers — checked to exist once decided (DEC-005)
+#   package:  the dependency it pins — compared with the manifest (DEC-003)
+#   blocks:   paths that must not exist while this is pending — a P0 gate (DEC-001)
+
+version: 1
+
+decisions:
+`;
+
+/** The register for a profile, every slot pending and owned by a human until somebody rules. */
+function registerFor(profile) {
+  const body = slotsForProfile(profile)
+    .sort((a, b) => a.key.localeCompare(b.key))
+    .map(({ key, question }) => renderSlot(key, { question, status: "pending", owner: "human" }))
+    .join("\n");
+  return REGISTER_HEADER + body + "\n";
+}
 
 /**
  * Every package.json in the repository, nearest to the root first. A monorepo keeps its real
@@ -140,7 +171,31 @@ ${color.bold("devia init")} — create .devia/ in this repository
     writeFile(target, fill(read(path.join(templateDir, rel)) || "", vars));
     written++;
   }
+  const optionalDir = path.join(packageRoot, "templates", "optional");
+  for (const rel of optionalMemoryFor(profile)) {
+    const target = path.join(deviaDir, rel);
+    if (exists(target) && !force) {
+      kept++;
+      continue;
+    }
+    writeFile(target, fill(read(path.join(optionalDir, rel)) || "", vars));
+    written++;
+  }
   status(written ? "PASS" : "SKIP", `memory files: ${written} written`, kept ? `${kept} kept` : "");
+
+  // 1b. The decision register, seeded from the profile.
+  //
+  // Generated rather than copied: which decisions a project owes depends on what it is, and a
+  // register that asks a CLI tool for its brand typography is a register nobody reads twice.
+  // Never regenerated without --force — every slot in it is somebody's ruling.
+  const registerPath = path.join(deviaDir, REGISTER_FILE);
+  if (!exists(registerPath) || force) {
+    writeFile(registerPath, registerFor(profile));
+    const n = slotsForProfile(profile).length;
+    status("PASS", `${REGISTER_FILE}: ${n} slots`, "all pending — `devia decide` rules on them");
+  } else {
+    status("SKIP", `${REGISTER_FILE} kept`, "it holds decisions, not defaults");
+  }
 
   // 2. What inside the memory is generated rather than authored.
   //
@@ -214,10 +269,11 @@ ${color.bold("devia init")} — create .devia/ in this repository
   }
 
   heading("Next");
-  line(`  1. Fill ${color.bold(".devia/00_OVERVIEW.md")} from what this repository actually is`);
-  line("  2. Move known issues into 11_GAPS.md (undecided) and 12_DEBT.md (decided, not built)");
-  line("  3. Write the real commands into 13_RECIPES.md and .devia/AGENTS.md");
-  line("  4. Run " + color.bold("npx devia validate") + " and " + color.bold("npx devia check"));
+  line(`  1. Rule on the register: ${color.bold("npx devia decide")} — every slot is pending until you do`);
+  line(`  2. Fill ${color.bold(".devia/00_OVERVIEW.md")} from what this repository actually is`);
+  line("  3. Move known issues into 11_GAPS.md (undecided) and 12_DEBT.md (decided, not built)");
+  line("  4. Write the real commands into 13_RECIPES.md and .devia/AGENTS.md");
+  line("  5. Run " + color.bold("npx devia validate") + " and " + color.bold("npx devia check"));
   line("");
   line(color.dim("  Commit .devia/ — it is part of the repository, not a scratch pad."));
   if (existed && !force) {

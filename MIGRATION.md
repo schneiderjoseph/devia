@@ -39,6 +39,31 @@ Engineering and agent rules are **new** IDs, not renames: `ARC-*`, `SEC-*`, `DB-
 Note the two `DATA` families do not collide: `DATA-*` is data **display** (design), database
 rules are `DB-*`.
 
+## From devia 0.8.x to 0.9.0
+
+```bash
+npm install -D @schneiderjoseph/devia@latest
+npx devia init      # adds .devia/decisions.yaml, and 08_DISCOVERY.md on web-app and docs
+npx devia decide    # every slot is pending until somebody rules on it
+```
+
+`init` without `--force` never overwrites a file that holds decisions, so an existing memory
+comes through untouched.
+
+Nothing that passed under 0.8.0 starts failing because 0.9.0 was installed:
+
+| Situation | 0.9.0 |
+|---|---|
+| No `decisions.yaml` | `devia validate` **warns**; all five `DEC-*` gates report `SKIP` with the reason |
+| A register with every slot pending | `DEC-PENDING` warns at P2. Nothing blocks |
+| A pending slot with no `blocks:` | Never blocks. Only the project's own `blocks:` declaration turns a pending decision into a P0 failure |
+| A CLI, library or service profile | No `08_DISCOVERY.md`, and no discovery rules routed into its contexts |
+
+Two versions moved: the standard is **0.3.0** (rule domains `decision` and `discovery`, fourteen
+new IDs), and the memory schema is **2** (the register, and a required-file set that depends on
+the profile). Pin the standard version in `.devia/devia.json` if you audit against exact wording;
+`npx devia sync` refreshes a vendored copy.
+
 ## If a repo already adopted one of the old standards
 
 ```bash

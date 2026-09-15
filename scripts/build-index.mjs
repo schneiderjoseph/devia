@@ -24,7 +24,8 @@ if (errors.length) {
 
 const GROUPS = [
   ["Agent discipline", ["agent", "memory"]],
-  ["Engineering", ["architecture", "api", "database", "security", "testing", "devops", "observability", "privacy", "ai"]],
+  ["Decisions", ["decision"]],
+  ["Engineering", ["architecture", "api", "database", "security", "testing", "devops", "observability", "privacy", "ai", "discovery"]],
   ["Design", ["accessibility", "components", "content", "data-display", "design-system", "interaction", "localization", "motion", "responsive", "states", "ui", "ux"]],
 ];
 

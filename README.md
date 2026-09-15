@@ -25,6 +25,14 @@ Devia fixes it with three things that reinforce each other:
 | **Discipline** | how an agent is allowed to work | `AGENTS.md`, `rules/agent/`, `rules/memory/` |
 | **Standard** | how the software must be built | `standard/engineering/`, `standard/design/`, `rules/`, `checklists/` |
 | **Memory** | what *this* project actually is | `.devia/` in the target repo |
+| **Decisions** | what it has ruled on — and what it has not | `.devia/decisions.yaml`, `rules/decision/` |
+
+And one line underneath all of it:
+
+> **An undefined decision is not an implicit permission.**
+
+A hole in a project is not a blank for the implementation to fill. It is a question with an
+owner, and devia makes it one before an agent stands in front of it.
 
 ## Quick start
 
@@ -35,6 +43,7 @@ npx devia validate            # memory integrity
 npx devia check               # production readiness (P0/P1)
 npx devia doctor              # adoption + staleness diagnosis
 npx devia context "<task>"    # the smallest sufficient context for one task
+npx devia decide              # the decision register: decided · pending · delegated
 ```
 
 `devia init` writes:
@@ -50,11 +59,13 @@ npx devia context "<task>"    # the smallest sufficient context for one task
 ├── 05_FLOWS.md
 ├── 06_INTEGRATIONS.md
 ├── 07_DESIGN.md
+├── 08_DISCOVERY.md      # web and docs profiles: search, indexing, AI access policy
 ├── 10_NEVER_ALWAYS.md   # project rules earned from real incidents
-├── 11_GAPS.md           # registry: decided by nobody yet
+├── 11_GAPS.md           # registry: a question somebody hit; nobody has ruled
 ├── 12_DEBT.md           # registry: decided, not built
 ├── 13_RECIPES.md        # how to do common tasks in THIS repo
 ├── 14_INDEX.md          # where to find what
+├── decisions.yaml       # register: what this project owes an explicit answer to
 ├── impact-map.yaml      # change type → files that must be updated
 ├── devia.json           # profile, modules, maturity target, pinned version, context budget
 ├── contributions/       # optional: evidence for devia problems found in this repo
@@ -63,6 +74,54 @@ npx devia context "<task>"    # the smallest sufficient context for one task
 
 Plus adapters so every agent gets the same contract: `AGENTS.md` (universal), `CLAUDE.md`,
 `.cursor/rules/devia.mdc`, `.github/copilot-instructions.md`, `.windsurfrules`.
+
+## The register
+
+The two older registries are reactive: a gap is a question somebody tripped over, a debt line is
+a rule somebody noticed the code breaking. Neither says anything **before** the work starts —
+which is exactly when an agent invents a brand, a framework major and a robots policy nobody
+asked it for.
+
+`devia init` seeds the questions a project of this kind always owes an answer to, from its
+profile, every one of them pending:
+
+```bash
+npx devia decide                 # every slot, grouped, with its status
+npx devia decide pending         # only what nobody has ruled on
+
+npx devia decide set stack.framework "16.x" --package next --because "latest stable at init"
+npx devia decide delegate testing.framework --bounded-by "runs in CI with no network"
+npx devia decide drop content.imagery --because "this product ships no imagery"
+npx devia decide open design.direction --owner "design lead" --blocks app/marketing
+```
+
+Four statuses, because absence of information and absence of need are different facts:
+
+| | Means | What an agent may do |
+|---|---|---|
+| `decided` | A human ruled. | Implement it. |
+| `pending` | Nobody has ruled. | **Build around it. Never answer it.** |
+| `delegated` | The agent may choose, inside `bounded_by`. | Choose — inside those bounds only. |
+| `not_required` | Deliberately not needed here. | Do not add one. |
+
+A pending slot is not a nag. It travels with the work: `devia context "style the marketing hero"`
+puts `design.direction`, `brand.colors` and `content.imagery` in the **blocking** tier, where the
+budget cannot evict them. The agent is told not to invent a brand at the moment it would have.
+
+Three of them are checked against the repository rather than against good intentions:
+
+```text
+brand.logo   decided → assets/brand/logo.svg     the file is not there        FAIL  DEC-005
+stack.frame. decided → 16.x, package next        the manifest says ^15.2.0    FAIL  DEC-003
+design.dir.  pending, blocks app/marketing       app/marketing exists         FAIL  DEC-001  P0
+```
+
+Only the third blocks, and only because the project itself declared what that decision blocks. A
+gate that failed on every open question would be switched off inside a week.
+
+devia never asks a registry what the newest release is — it has no network, and "latest" rots in
+a file the day after it is written. "Is 16 still the newest" is `npm outdated`'s question. "Did
+we decide 16 and ship 15" is devia's, and it is the one that is actually a defect.
 
 ## Rule zero
 
@@ -212,7 +271,8 @@ percentage. A context optimiser measured only by how much it cut will cut the wr
 | Work contract | [`AGENTS.md`](AGENTS.md) | Workflow, hard stops, output contract |
 | Principles | [`PRINCIPLES.md`](PRINCIPLES.md) | Simple > clever, complexity earned, dependency liability, evidence > opinion |
 | Memory doctrine | [`MEMORY.md`](MEMORY.md) | Registries, sweep discipline, impact map, staleness |
-| Rules | [`rules/`](rules/README.md) | 141 rules with stable IDs, severity, priority, validation |
+| Decisions | [`rules/decision/`](rules/README.md) | What must be ruled on before it is built, and by whom |
+| Rules | [`rules/`](rules/README.md) | 155 rules with stable IDs, severity, priority, validation |
 | Engineering | [`standard/engineering/`](standard/engineering/README.md) | Architecture, security (ASVS 5.0), database, API, testing, devops, observability, privacy, payments, AI |
 | Design | [`standard/design/`](standard/design/README.md) | UX, UI, accessibility (WCAG 2.2), states, components, data display, i18n, responsive, anti-patterns |
 | Checklists | [`checklists/`](checklists/README.md) | Engineering + design review gates |

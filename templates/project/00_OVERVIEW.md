@@ -13,6 +13,16 @@ did not exist?
 TODO(devia): the roles that matter to the code — anonymous visitor, customer, staff, admin,
 machine client. Permissions detail goes in `04_PERMISSIONS.md`.
 
+## What someone is meant to do here
+
+TODO(devia): the one action the product exists to make happen — buy, sign up, file, search,
+deploy. Then the secondary one, if there is a real second.
+
+A surface built without this is a surface nobody can review, because there is no stated thing it
+was supposed to achieve (`DEC-007`). The ruling itself lives in
+[`decisions.yaml`](decisions.yaml) under `product.primary_action`; this section says what it
+means for this product.
+
 ## Stack
 
 | Layer | Technology | Notes |
@@ -23,6 +33,9 @@ machine client. Permissions detail goes in `04_PERMISSIONS.md`.
 | Frontend | TODO(devia) | |
 | Hosting / deploy | TODO(devia) | |
 | CI | TODO(devia) | |
+
+Each of these is a version somebody chose. The choice, its date and its reason live in
+[`decisions.yaml`](decisions.yaml); this table says what is running (`DEC-003`).
 
 ## Modules
 

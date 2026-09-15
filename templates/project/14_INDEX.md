@@ -14,7 +14,9 @@
 | What must never break? | [`05_FLOWS.md`](05_FLOWS.md) |
 | What do we call out to? | [`06_INTEGRATIONS.md`](06_INTEGRATIONS.md) |
 | What are the interface rules here? | [`07_DESIGN.md`](07_DESIGN.md) |
+| How is this found, by people and by machines? | [`08_DISCOVERY.md`](08_DISCOVERY.md) |
 | What is banned? | [`10_NEVER_ALWAYS.md`](10_NEVER_ALWAYS.md) |
+| What has this project ruled on? | [`decisions.yaml`](decisions.yaml) · `npx devia decide` |
 | What is undecided? | [`11_GAPS.md`](11_GAPS.md) |
 | What is owed? | [`12_DEBT.md`](12_DEBT.md) |
 | How do I do X? | [`13_RECIPES.md`](13_RECIPES.md) |

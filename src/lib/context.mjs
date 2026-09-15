@@ -4,6 +4,7 @@ import { parseYaml } from "./yaml.mjs";
 import { loadRules } from "./rules.mjs";
 import { estimateTokens } from "./tokens.mjs";
 import { gatesByRule } from "./gates.mjs";
+import { loadRegister } from "./decisions.mjs";
 
 /**
  * Which part of devia an agent actually needs for the task in front of it.
@@ -39,7 +40,7 @@ export const TIERS = {
  * The contract applies to every task, whatever the task is: an agent inventing an endpoint or
  * deleting a debt line is a failure in a database change as much as in a UI one.
  */
-const ALWAYS_ON_DOMAINS = ["agent", "memory"];
+const ALWAYS_ON_DOMAINS = ["agent", "memory", "decision"];
 
 /**
  * Task words -> rule domains. Data, not logic: a domain earns an entry by being the thing
@@ -89,6 +90,11 @@ const KEYWORDS = {
   interaction: ["touch", "mouse", "pointer", "gesture", "hover", "drag"],
   motion: ["animation", "animate", "transition", "motion"],
   content: ["wording", "message", "messages", "tone", "microcopy"],
+  // "index" is deliberately absent: "add an index on orders" is a database change, and routing
+  // it here would pull the discovery corpus into every schema task. "indexing" and "noindex"
+  // are unambiguous; the bare word is not.
+  discovery: ["seo", "sitemap", "robots", "canonical", "indexing", "noindex", "crawler", "crawl",
+    "metadata", "opengraph", "hreflang", "llms", "discoverable", "searchable"],
 };
 
 /** Changed paths -> rule domains. A file's location says more than a sentence about it. */
@@ -110,6 +116,9 @@ const PATH_DOMAINS = [
   [/(^|\/)(Dockerfile|docker-compose|\.dockerignore)/i, ["devops"]],
   [/(^|\/)(terraform|infra|deploy|k8s|helm)(\/|$)/i, ["devops"]],
   [/(^|\/)(telemetry|logging|metrics|observability)(\/|$)/i, ["observability"]],
+  [/(^|\/)(robots\.txt|sitemap[^/]*\.xml|llms\.txt|humans\.txt)$/i, ["discovery"]],
+  [/(^|\/)(sitemap|robots)\.[jt]s$/i, ["discovery"]],
+  [/(^|\/)(head|metadata|seo)\.[jt]sx?$/i, ["discovery", "ui"]],
 ];
 
 /**
@@ -127,6 +136,7 @@ const IMPLIES = {
   ux: ["accessibility", "content"],
   components: ["accessibility"],
   ai: ["security"],
+  discovery: ["content", "accessibility"],
 };
 
 /** Memory file -> the domains it speaks for. `14_INDEX.md` is a map, never context in itself. */
@@ -140,7 +150,24 @@ const MEMORY_DOMAINS = {
   "06_INTEGRATIONS.md": ["api", "devops", "ai", "security"],
   "07_DESIGN.md": ["ui", "ux", "design-system", "components", "accessibility", "motion",
     "responsive", "states", "data-display", "localization", "interaction", "content"],
+  "08_DISCOVERY.md": ["discovery", "content", "ui", "ux", "localization", "privacy"],
   "13_RECIPES.md": ["devops", "testing", "architecture"],
+};
+
+/**
+ * Decision group -> the domains it speaks for. The register routes the same way a memory file
+ * does: a task about the hero section reaches `design.direction` because `design` speaks for ui,
+ * not because anybody wrote the word "direction" in the task.
+ */
+const DECISION_DOMAINS = {
+  product: ["ux", "content", "architecture"],
+  stack: ["architecture", "devops", "database"],
+  testing: ["testing"],
+  ops: ["devops"],
+  brand: ["ui", "design-system"],
+  design: ["ui", "ux", "design-system", "components"],
+  content: ["content", "ux", "ui"],
+  discovery: ["discovery", "content"],
 };
 
 const STOPWORDS = new Set([
@@ -288,6 +315,35 @@ export function renderRule(rule, gates) {
   return `- ${head}\n  ${String(rule.requirement).trim()}`;
 }
 
+/**
+ * One decision slot as the line an agent reads.
+ *
+ * A pending slot says what not to do, because that is the whole of its content: there is no
+ * answer to deliver, only the instruction not to invent one.
+ */
+export function renderDecision(slot) {
+  const head = `- decision ${slot.key} · ${slot.status}`;
+  if (slot.status === "pending") {
+    return (
+      `${head}
+  ${slot.question || "undecided"} — owed by ${slot.owner || "nobody"}. ` +
+      "Do not encode an answer: record the consequence or ask (DEC-001)."
+    );
+  }
+  if (slot.status === "delegated") {
+    return `${head}
+  ${slot.to || "agent"} may choose, bounded by: ${slot.bounded_by} (DEC-002)`;
+  }
+  if (slot.status === "not_required") {
+    return `${head}
+  deliberately not needed here: ${slot.because}. Do not add one.`;
+  }
+  const when = slot.decided_at ? ` (${slot.decided_at})` : "";
+  const why = slot.because ? ` — ${slot.because}` : "";
+  return `${head}
+  ${slot.value || slot.path}${when}${why}`;
+}
+
 /** Where the rules come from: a pinned copy when the project has one, the package otherwise. */
 export function rulesDir(deviaDir) {
   const vendored = path.join(deviaDir, "standard", "rules");
@@ -369,6 +425,30 @@ export function buildCorpus({ root, deviaDir }) {
         text: s.text,
       });
     }
+  }
+
+  /**
+   * The register, as context.
+   *
+   * This is where the doctrine stops being a document. An agent about to build a hero section
+   * does not need to be told in the abstract that undefined is not permission — it needs the one
+   * line saying `design.direction` is pending and owned by a human, delivered at the moment it
+   * would otherwise have picked a purple gradient. A pending decision the task touches is
+   * mandatory context and is never evicted by a budget (`DEC-001`).
+   *
+   * `not_required` is carried too, and it is not noise: "this product ships no photography" is
+   * the sentence that stops an agent from adding stock imagery to fill a gap it perceives.
+   */
+  for (const slot of loadRegister(deviaDir).slots) {
+    if (!slot.status) continue;
+    items.push({
+      kind: "decision",
+      id: slot.key,
+      domains: DECISION_DOMAINS[slot.group] || [],
+      slot,
+      text: renderDecision(slot),
+      short: `- decision ${slot.key} · ${slot.status}`,
+    });
   }
 
   const mapText = read(path.join(deviaDir, "impact-map.yaml"));
@@ -558,6 +638,26 @@ export function classify(
       } else {
         why.push("no term or surface in common with the task");
       }
+    } else if (item.kind === "decision") {
+      const hits = textScore(`${item.id} ${item.slot.question} ${item.slot.value}`, words);
+      const touched = routedDomain.length > 0 || hits > 0;
+      if (item.slot.status === "pending") {
+        // Mandatory when this task touches it: a pending decision the agent is about to walk
+        // into is the single most useful thing devia can say, and a budget must not eat it.
+        tier = touched ? "T0" : "T3";
+        relevance = 5 + hits + routedDomain.length;
+        why.push(
+          touched
+            ? "this task touches a decision nobody has ruled on (DEC-001)"
+            : "open decision, unrelated to this task"
+        );
+      } else if (touched) {
+        tier = "T2";
+        relevance = 2 + hits + routedDomain.length;
+        why.push(`the register already ruled on this: ${item.slot.status}`);
+      } else {
+        why.push("decided, and unrelated to this task");
+      }
     } else if (item.kind === "gap" || item.kind === "debt") {
       const hits = textScore(item.text, words);
       if (hits) {
@@ -579,7 +679,8 @@ export function classify(
       routedDomain.length ||
         (item.kind === "impact" && changeTypes.has(item.id)) ||
         (item.kind === "memory" && (duty.has(String(item.id).split("#")[0]) || textScore(item.text, words) > 0)) ||
-        ((item.kind === "gap" || item.kind === "debt") && tier === "T3")
+        ((item.kind === "gap" || item.kind === "debt") && tier === "T3") ||
+        (item.kind === "decision" && tier !== "T5" && tier !== "T3")
     );
   }
 
@@ -608,6 +709,9 @@ const SMALLEST = {
   rule: "ref",
   never: "pointer",
   always: "pointer",
+  // A decision line is two lines long already, and the shorter form still names the slot and its
+  // status — enough for an agent to stop and go read the register. It never shrinks past that.
+  decision: "short",
 };
 
 const DEGRADATION_NOTE = {

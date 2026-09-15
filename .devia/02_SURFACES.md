@@ -16,6 +16,7 @@
 | `devia context` | The smallest sufficient context for one task | `src/commands/context.mjs` | 1 without `.devia/`, or when a strict target cannot hold the mandatory set |
 | `devia sync` | Pin the standard, or refresh a pinned copy | `src/commands/sync.mjs` | 1 without `.devia/` |
 | `devia skills` | Install adapters and the skill pack, per repository or `--global` | `src/commands/skills.mjs` | 2 on a bad action |
+| `devia decide` | The decision register: read it, and record a ruling, a bounded delegation or a deliberate absence | `src/commands/decide.mjs` | 1 when a pending decision blocks a path that exists, or there is no register; 2 on a ruling with no reason or a delegation with no bounds |
 | `devia gap` / `devia debt` | Registry lines | `src/commands/registry.mjs` | 1 when the id is unknown |
 | `devia contribute` | A devia problem observed here, as an issue or a pull request | `src/commands/contribute.mjs` | 1 when a candidate is not eligible, 2 on a bad action |
 
@@ -53,7 +54,7 @@ checkout. A pull request is opened only against a branch the contributor already
 
 | Written by | Path in the target repo |
 |---|---|
-| `init` | `.devia/` (memory, `devia.json`, `impact-map.yaml`, `standard/`) |
+| `init` | `.devia/` (memory, `decisions.yaml`, `devia.json`, `impact-map.yaml`, `standard/`) |
 | `init`, `skills install` | `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/devia.mdc`, `.github/copilot-instructions.md`, `.windsurfrules` |
 | `skills install --skill` | `.cursor/skills/devia/SKILL.md`, `.claude/skills/devia/SKILL.md` |
 | `read` | `.devia/reader.html` — a generated snapshot, gitignored, never the source |

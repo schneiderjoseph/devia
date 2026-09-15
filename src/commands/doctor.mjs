@@ -4,7 +4,7 @@ import { git, isRepo } from "../lib/git.mjs";
 import { standardVersion } from "../lib/version.mjs";
 import { color, heading, status, line } from "../lib/ui.mjs";
 import { ADAPTERS } from "./skills.mjs";
-import { REQUIRED_MEMORY, registryIds } from "./validate.mjs";
+import { requiredMemory, registryIds } from "./validate.mjs";
 
 function lastCommitTime(root, pathspec) {
   const out = git(root, ["log", "-1", "--format=%ct", "--", ...pathspec]);
@@ -44,15 +44,16 @@ ${color.bold("devia doctor")} — adoption, drift and staleness
     line("");
     return 1;
   }
-  const missing = REQUIRED_MEMORY.filter((f) => !exists(path.join(deviaDir, f)));
+  const config = readJSON(path.join(deviaDir, "devia.json")) || {};
+  const required = requiredMemory(config?.project?.profile);
+  const missing = required.filter((f) => !exists(path.join(deviaDir, f)));
   status(
     missing.length ? "WARN" : "PASS",
-    `memory files (${REQUIRED_MEMORY.length - missing.length}/${REQUIRED_MEMORY.length})`,
+    `memory files (${required.length - missing.length}/${required.length})`,
     missing.length ? `missing ${missing.join(", ")}` : ""
   );
 
   // Version pin
-  const config = readJSON(path.join(deviaDir, "devia.json")) || {};
   const installed = standardVersion();
   if (config.standardVersion && installed && config.standardVersion !== installed) {
     status("WARN", `standard pinned at ${config.standardVersion}`, `installed ${installed} — run \`devia sync\``);
@@ -81,7 +82,7 @@ ${color.bold("devia doctor")} — adoption, drift and staleness
 
   // Placeholders
   let placeholders = 0;
-  for (const f of REQUIRED_MEMORY) {
+  for (const f of required) {
     const text = read(path.join(deviaDir, f));
     if (text) placeholders += (text.match(/TODO\(devia\)/g) || []).length;
   }

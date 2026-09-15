@@ -23,6 +23,11 @@ npx devia context "<what you are about to do>"     # --explain says why each ite
 
 - Never invent endpoints, fields, config keys or business rules. Unknown means ask, or record it
   in `.devia/11_GAPS.md`
+- **An undefined decision is not an implicit permission.** A `pending` slot in
+  `.devia/decisions.yaml` (`npx devia decide pending`) — a brand, a palette, a framework major,
+  an indexing policy — is a question with an owner. Build around it; never answer it. You decide
+  only where the register says `delegated`, inside its stated bounds
+- A missing asset stays missing. Never generate a placeholder logo or image
 - Decided but not built goes in `.devia/12_DEBT.md`, even when you are not fixing it
 - Smallest change that satisfies the request
 - Never disable a test, bypass a hook, or weaken a rule to make a check pass

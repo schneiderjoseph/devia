@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/schneiderjoseph/devia/schema/decisions.schema.json",
+  "title": "DeviaDecisionRegister",
+  "description": "The decisions a project owes an explicit answer to. A missing answer is a recorded state, never an empty space for the next agent to fill in (DEC-001).",
+  "type": "object",
+  "required": ["version", "decisions"],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "decisions": {
+      "type": "object",
+      "description": "Slot key -> decision. The key names the decision (`brand.logo`, `stack.framework`); its first segment is the group, which is what the context router routes on.",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/decision"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "decision": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "enum": ["decided", "pending", "delegated", "not_required"],
+          "description": "Four, not three: `not_required` is a ruling ('this product ships no photography'), and folding it into `pending` would leave a permanent false alarm on a project that has already answered."
+        },
+        "question": {
+          "type": "string",
+          "description": "What this slot asks, in the words a reader needs."
+        },
+        "value": {
+          "type": "string",
+          "description": "The ruling. Required when status is `decided`, unless the ruling is the file named by `path`."
+        },
+        "because": {
+          "type": "string",
+          "description": "Why. Required by `decided` and `not_required` — a ruling nobody can review is folklore."
+        },
+        "owner": {
+          "type": "string",
+          "description": "Who owes the answer. Required by `pending`: a question nobody owns is a question nobody will answer."
+        },
+        "to": {
+          "type": "string",
+          "description": "Who the choice was delegated to. Defaults to the agent."
+        },
+        "bounded_by": {
+          "type": "string",
+          "description": "The limits of the delegation. Required by `delegated` — delegation without bounds is absence wearing the word explicit (DEC-002)."
+        },
+        "path": {
+          "type": "string",
+          "description": "The file this decision delivers, relative to the repository root. Checked to exist once the slot is decided (DEC-005)."
+        },
+        "package": {
+          "type": "string",
+          "description": "The dependency this decision pins. Its major is compared with the manifest, never with a registry: devia has no network, and 'is this still the newest' is npm outdated's question (DEC-003)."
+        },
+        "blocks": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Paths that must not exist while this slot is pending. This is the only thing that turns a pending decision into a P0 failure, and the project declares it — a gate that failed on every open question would be switched off inside a week."
+        },
+        "decided_at": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "ISO date the ruling was made. Stamped by `devia decide`."
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

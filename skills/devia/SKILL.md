@@ -38,6 +38,31 @@ the difference between a task and a guess (`AGT-002`).
 3. `.devia/00_OVERVIEW.md` — what this project is
 4. The memory file for the surface you are about to touch (`.devia/14_INDEX.md`)
 
+## Step 1b — what has this project NOT decided?
+
+```bash
+npx devia decide pending
+```
+
+**A `pending` decision is not permission to choose one.** The register names the questions this
+kind of project always owes an answer to — its purpose, its stack versions, its brand, whether
+search engines and AI crawlers may have it — and a slot that has not been ruled on is a question
+with an owner, not a blank for you to fill (`DEC-001`).
+
+| Status | What you may do |
+|---|---|
+| `decided` | Implement it. Never reverse it quietly. |
+| `pending` | Build around it. Say what it blocks. **Never answer it.** |
+| `delegated` | Choose — inside `bounded_by`, and nowhere else (`DEC-002`). |
+| `not_required` | Do not add one. |
+
+No brand, no palette, no typeface, no framework major, no robots policy decided as a side effect
+of implementation. A missing asset stays missing: never generate a stand-in (`DEC-005`). If the
+decision is genuinely blocking you, say which surface it blocks — do not resolve it yourself.
+
+`devia context` already puts the pending decisions your task touches in the blocking tier, so if
+you are reading a context, they are in it.
+
 ## Step 2 — ask for the context this task needs
 
 Do not read the whole standard. Ask for the part of it this task needs:
@@ -72,6 +97,11 @@ for a whole area. A project that ran `devia sync` also has them on disk under
 |---|---|
 | Guess an endpoint, field, config key or business rule | `AGT-004` — do not. Ask, or record a gap |
 | Encode an undecided policy | `MEM-001` — declare it and open a gap |
+| Pick a colour, typeface or visual direction nobody chose | `DEC-004` — do not establish a brand by accident |
+| Improvise a logo, icon set or placeholder image | `DEC-005` — a missing asset stays missing |
+| Choose a framework or runtime version | `DEC-003` — record the version, the date and the reason |
+| Emit a robots file, sitemap or metadata | `DISC-001`, `DISC-005` — indexing and AI access are rulings, not defaults |
+| Let a staging or preview host be indexable | `DISC-004` — never; and a robots directive is not protection |
 | Notice something broken you are not fixing | `MEM-002` — open a debt line |
 | Refactor beyond the request | `AGT-003` — do not |
 | Skip a hook or disable a test | `OPS-003`, `TST-003` — do not |
@@ -103,6 +133,14 @@ npx devia debt add "Refund endpoint has no idempotency key (API-004)"
 
 Never delete a gap or debt line you did not discharge (`MEM-011`).
 
+A human ruling you were given in the conversation belongs in the register, not only in the code:
+
+```bash
+npx devia decide set stack.framework "16.x" --package next --because "latest stable at init"
+```
+
+You may record a ruling somebody made. You may not make one.
+
 ## Step 5 — verify, then report
 
 ```bash
@@ -120,6 +158,7 @@ Report with:
 - P0 status: ...
 - Checks run / NOT run: ...
 - .devia updated: ...
+- Decisions relied on: ... (and any `pending` slot this change touched)
 - Registries: gaps / debt touched
 - Not verified: ...
 ```

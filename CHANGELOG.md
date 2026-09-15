@@ -1,5 +1,141 @@
 # Changelog
 
+## 0.9.0 — 2026-09-15
+
+**An undefined decision is not an implicit permission.**
+
+0.8.0 could tell an agent what this project had already decided. It had nothing to say about
+what the project had *not* decided, and that turned out to be where agents do the most damage —
+not by breaking a rule, but by answering a question nobody asked them.
+
+```text
+information missing              information missing
+       ↓                                ↓
+reasonable assumption      →       PENDING — recorded, owned, in every context
+       ↓                                ↓
+implementation                human decision OR bounded delegation
+       ↓                                ↓
+a policy nobody chose              implementation
+```
+
+The purple-gradient landing page is the visible case. The expensive ones are quiet: a framework
+major inherited from whatever scaffolded the repository, an indexing policy inherited from a
+template, a rounding rule that was load-bearing by the time anyone noticed. In all of them the
+failure is the same — a missing answer was read as a free choice.
+
+### The decision register
+
+`.devia/decisions.yaml`, seeded by `devia init` from the project profile. The two older
+registries are reactive: a gap is a question somebody tripped over, a debt line is a rule
+somebody noticed the code breaking. Neither says anything *before* the work starts.
+
+```text
+decisions.yaml   the questions this kind of project always has   — known unknowns
+11_GAPS.md       a question somebody hit while working           — unknown unknowns
+12_DEBT.md       decided, not built
+```
+
+Four statuses, not three, because absence of information and absence of need are different
+facts. `not_required` is a ruling — "this product ships no photography" — and folding it into
+`pending` would leave a permanent false alarm on a project that has already answered.
+
+| | Means | What an agent may do |
+|---|---|---|
+| `decided` | A human ruled. | Implement it. |
+| `pending` | Nobody has ruled. | **Build around it. Never answer it.** |
+| `delegated` | The agent may choose, inside `bounded_by`. | Choose — inside those bounds only. |
+| `not_required` | Deliberately not needed here. | Do not add one. |
+
+A delegation with no bounds is not delegation; it is absence wearing the word "explicit", and
+`devia validate` fails it. Likewise a ruling with no reason and no date: `devia decide set`
+refuses it rather than recording folklore.
+
+```bash
+devia decide                     # every slot, grouped, with its status
+devia decide pending             # only what nobody has ruled on
+devia decide set stack.framework "16.x" --package next --because "latest stable at init"
+devia decide delegate testing.framework --bounded-by "runs in CI with no network"
+devia decide drop content.imagery --because "this product ships no imagery"
+devia decide open design.direction --owner "design lead" --blocks app/marketing
+```
+
+There is no verb that deletes a slot. A question this kind of project has does not stop existing
+because the answer is inconvenient — `drop` records that it is deliberately not needed, with a
+reason and a diff somebody can read.
+
+### It travels with the work
+
+A doctrine an agent has to remember is a doctrine an agent forgets. A pending decision the task
+touches is admitted to the **blocking** tier of `devia context`, before the budget is consulted,
+and is never evicted — in `strict` mode it shrinks to its own name rather than disappearing.
+
+```text
+$ devia context "style the marketing hero" --files app/marketing/page.tsx
+
+## Blocking — these stop the change
+- decision design.direction · pending
+  The visual direction this product commits to — owed by design lead.
+  Do not encode an answer: record the consequence or ask (DEC-001).
+- decision brand.colors · pending
+- decision content.imagery · pending
+```
+
+The agent is told not to invent a brand at the moment it would have.
+
+### Three checks against the repository, not against good intentions
+
+```text
+brand.logo      decided → assets/brand/logo.svg   the file is not there       FAIL  DEC-005
+stack.framework decided → 16.x, package next      the manifest says ^15.2.0   FAIL  DEC-003
+design.direction pending, blocks app/marketing    app/marketing exists   P0   FAIL  DEC-001
+```
+
+Only the third blocks, and only because the project itself declared what that decision blocks.
+A gate that failed on every open question would be switched off inside a week, and devia would
+have traded a real stop for a warning nobody reads.
+
+`DEC-STACK` compares the decision with the **manifest**, never with a registry. devia has no
+network, and "latest" rots in a file the day after it is written. "Is 16 still the newest" is
+`npm outdated`'s question; "did we decide 16 and ship 15" is devia's, and it is the one that is
+actually a defect. Staying on an old major on purpose is a decision devia records rather than
+punishes — it asks only that the reason be written down.
+
+### Discovery is a surface, not a task at the end
+
+Fourteen new rules: seven `DEC-*` for how decisions are made, seven `DISC-*` for how a project is
+found. `08_DISCOVERY.md` appears for the `web-app` and `docs` profiles only.
+
+Search and machine access share one set of mechanisms and differ only in policy, so they are one
+file with two sections rather than two files of overlapping technique. The policy question —
+*may AI crawlers fetch this, and may it train on it* — is recorded as a decision with an owner,
+and implemented where the mechanism is actually honoured.
+
+`DISC-006` is the counterweight, and it was written deliberately: a discovery mechanism is never
+adopted on the strength of its name. An unratified convention is recorded as a convention, with
+what actually honours it, and is never described to anyone as protection. `DISC-004` (P0) is the
+one that blocks: a staging host is kept out of the index by authentication, not by a robots
+directive — that is a request, and a public list of what exists.
+
+### Required memory files now depend on the profile
+
+`08_DISCOVERY.md` is owed by projects that have something to be discovered. A required file a
+project has no use for is a file it fills with `TODO(devia)`, and placeholders are how a memory
+stops being read. `devia validate`, `devia doctor` and the impact-map check all resolve the
+required set from `devia.json`.
+
+### Upgrading from 0.8.0
+
+```bash
+npx devia init      # adds decisions.yaml and 08_DISCOVERY.md; touches nothing else
+npx devia decide    # every slot is pending until you rule on it
+```
+
+`init` without `--force` never overwrites a file that holds decisions. A memory with no register
+is reported, not failed: `devia validate` warns, and all five `DEC-*` gates report `SKIP` with
+the reason. Nothing that passed under 0.8.0 starts failing because 0.9.0 was installed.
+
+Standard 0.2.0 → **0.3.0** (two new rule domains). Memory schema 1 → **2**.
+
 ## 0.8.0 — 2026-09-13
 
 A hardening pass. No new features: three limitations 0.7.0 recorded as debt are closed, and the

@@ -76,11 +76,21 @@ Adding a dependency is a product decision, not a typing shortcut.
 
 ## Nothing undecided becomes a silent truth
 
+**An undefined decision is not an implicit permission.**
+
 When the answer is not known, the agent does not pick one quietly and encode it. It implements a
 **declared** policy and records the open question in `.devia/11_GAPS.md`.
 
+The decisions a project of a given kind always owes — its purpose, its stack versions, its brand,
+its indexing policy — are enumerated up front in `.devia/decisions.yaml`, so that a missing
+answer is a recorded state before an agent ever stands in front of it. `pending` is a question
+with an owner. The only place an agent decides for the project is a slot marked `delegated`, and
+only inside the bounds written next to it.
+
 When the answer *is* known but not built, that is not "we know about it" — it is a line in
 `.devia/12_DEBT.md`, with an ID that is never reused.
+
+**The agent can implement, recommend and verify. It does not decide what the product is.**
 
 ## Authoritative sources over taste
 
